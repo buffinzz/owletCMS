@@ -12,7 +12,7 @@ import { PagesModule } from './pages/pages.module';
       port: 5432,
       username: 'owlet',
       password: 'owlet',
-      database: 'owlet',
+      database: 'owlet_dev',
       autoLoadEntities: true,
       synchronize: true,
     }),
