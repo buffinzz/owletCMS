@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { PagesService } from './pages.service';
 import { Page } from './page.entity';
 
@@ -7,23 +7,17 @@ export class PagesController {
   constructor(private readonly pagesService: PagesService) {}
 
   @Get()
-  findAll(): Page[] {
+  findAll(): Promise<Page[]> {
     return this.pagesService.findAll();
   }
 
   @Get(':slug')
-  findOne(@Param('slug') slug: string): Page {
-    const page = this.pagesService.findOne(slug);
-
-    if (!page) {
-      throw new NotFoundException('Page not found');
-    }
-
-    return page;
+  async findOne(@Param('slug') slug: string): Promise<Page | null> {
+    return this.pagesService.findOne(slug);
   }
 
   @Post()
-  create(@Body() page: Page): Page {
+  create(@Body() page: Partial<Page>): Promise<Page> {
     return this.pagesService.create(page);
   }
 }

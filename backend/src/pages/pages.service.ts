@@ -1,24 +1,26 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Page } from './page.entity';
 
 @Injectable()
 export class PagesService {
-  private pages: Page[] = [];
 
-  findAll(): Page[] {
-    return this.pages;
+  constructor(
+    @InjectRepository(Page)
+    private pagesRepository: Repository<Page>,
+  ) {}
+
+  findAll(): Promise<Page[]> {
+    return this.pagesRepository.find();
   }
 
-  findOne(slug: string): Page | undefined {
-    return this.pages.find(page => page.slug === slug);
+  findOne(slug: string): Promise<Page | null> {
+    return this.pagesRepository.findOneBy({ slug });
   }
 
-  create(page: Page): Page {
-    page.id = Date.now();
-    page.createdAt = new Date();
-    page.updatedAt = new Date();
-
-    this.pages.push(page);
-    return page;
+  create(page: Partial<Page>): Promise<Page> {
+    const newPage = this.pagesRepository.create(page);
+    return this.pagesRepository.save(newPage);
   }
 }
