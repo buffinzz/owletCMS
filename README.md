@@ -1,3 +1,4 @@
+<img src="/images/logo.png" alt="Owlet CMS" style="max-width:300px;"
 # Owlet CMS 🦉
 
 Knowledge that connects.
