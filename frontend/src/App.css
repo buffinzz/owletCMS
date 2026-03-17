@@ -224,6 +224,9 @@ body {
   position: relative;
   overflow: hidden;
 }
+.owlet-card, .owlet-event-card {
+  text-decoration: none;
+}
 
 .owlet-card::before {
   content: '';
@@ -347,4 +350,320 @@ body {
   .owlet-nav {
     display: none;
   }
+}
+/* ── EVENTS ── */
+.owlet-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.owlet-event-card {
+  background: var(--white);
+  border-radius: 12px;
+  border: 1px solid var(--cream-dark);
+  box-shadow: 0 2px 12px rgba(61, 31, 110, 0.06);
+  display: flex;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.owlet-event-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(61, 31, 110, 0.12);
+}
+
+.owlet-event-date {
+  background: linear-gradient(160deg, var(--purple-deep), var(--purple-mid));
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1.5rem;
+  min-width: 90px;
+  text-align: center;
+  gap: 0.1rem;
+}
+
+.owlet-event-day {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--purple-light);
+  font-weight: 300;
+}
+
+.owlet-event-num {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--amber-light);
+  font-weight: 700;
+}
+
+.owlet-event-month {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--purple-light);
+}
+
+.owlet-event-body {
+  padding: 1.25rem 1.5rem;
+  flex: 1;
+}
+
+.owlet-event-body h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.2rem;
+  color: var(--purple-deep);
+  margin-bottom: 0.4rem;
+}
+
+.owlet-event-body p {
+  color: var(--ink-light);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  font-weight: 300;
+  margin-bottom: 0.75rem;
+}
+
+.owlet-event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--teal);
+  letter-spacing: 0.02em;
+}
+/* ── LOGIN ── */
+.owlet-login-wrap {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--purple-deep) 0%, var(--purple-mid) 60%, var(--teal) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.owlet-login-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 3rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.owlet-login-logo img {
+  width: 100px;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.owlet-login-card h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.owlet-login-sub {
+  color: var(--ink-light);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  font-weight: 300;
+}
+
+.owlet-login-form {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.owlet-login-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ── FORMS ── */
+.owlet-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.owlet-field label {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  font-weight: 400;
+}
+
+.owlet-field input,
+.owlet-field textarea {
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: var(--cream);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.owlet-field input:focus,
+.owlet-field textarea:focus {
+  outline: none;
+  border-color: var(--purple-mid);
+  box-shadow: 0 0 0 3px rgba(107, 63, 160, 0.1);
+  background: var(--white);
+}
+
+.owlet-field-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ── BUTTONS ── */
+.owlet-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.owlet-btn-primary {
+  background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid));
+  color: var(--white);
+  width: 100%;
+}
+
+.owlet-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(61, 31, 110, 0.3);
+}
+
+.owlet-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.owlet-btn-ghost {
+  background: transparent;
+  color: var(--purple-light);
+  border: 1px solid var(--purple-light);
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.owlet-btn-ghost:hover {
+  background: rgba(196, 168, 232, 0.1);
+}
+
+/* ── ADMIN ── */
+.owlet-admin {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.owlet-admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.owlet-admin-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 2.5rem;
+}
+
+.owlet-admin-title h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 1.5rem;
+  margin-bottom: 0.1rem;
+}
+
+.owlet-admin-title p {
+  font-size: 0.85rem;
+  color: var(--ink-light);
+  font-weight: 300;
+}
+
+.owlet-admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.owlet-tab {
+  border: 1px solid var(--cream-dark);
+  background: var(--white);
+  border-radius: 8px;
+  padding: 0.6rem 1.25rem;
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.9rem;
+  color: var(--ink-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.owlet-tab.active {
+  background: var(--purple-deep);
+  color: var(--white);
+  border-color: var(--purple-deep);
+}
+
+.owlet-tab:hover:not(.active) {
+  border-color: var(--purple-mid);
+  color: var(--purple-mid);
+}
+
+.owlet-admin-form {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid var(--cream-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── ALERTS ── */
+.owlet-alert {
+  padding: 0.875rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.owlet-alert-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.owlet-alert-error {
+  background: #fdecea;
+  color: #c0392b;
+  border: 1px solid #f5c6cb;
 }

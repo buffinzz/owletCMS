@@ -1,8 +1,14 @@
 import './App.css';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 import PageView from './pages/PageView';
-import owletLogo from './assets/logo.png';
+import EventsView from './events/EventsView';
+import LoginPage from './auth/LoginPage';
+import AdminDashboard from './auth/AdminDashboard';
+import owletLogo from './assets/owlet-logo.png';
 
-function App() {
+function AppContent() {
+  const { isAuthenticated, canEdit } = useAuth();
+
   return (
     <div>
       {/* Header */}
@@ -19,30 +25,50 @@ function App() {
             <a href="#">Collections</a>
             <a href="#">Events</a>
             <a href="#">Resources</a>
-            <a href="#">About</a>
+            {!isAuthenticated && <a href="#login">Staff login</a>}
           </nav>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="owlet-hero">
-        <div className="owlet-hero-inner">
-          <div className="owlet-hero-text">
-            <h1>Your library,<br /><em>beautifully connected.</em></h1>
-            <p>
-              Owlet helps public libraries share their collections, events, and 
-              resources with their communities — simply, openly, and with care.
-            </p>
-          </div>
-          <div className="owlet-hero-mascot">
-  <img src={owletLogo} alt="Owlet mascot" />
-</div>
+      {/* Admin dashboard for logged-in editors/admins */}
+      {isAuthenticated && canEdit && (
+        <div style={{ background: 'var(--cream-dark)', borderBottom: '1px solid var(--cream-dark)' }}>
+          <AdminDashboard />
         </div>
-      </section>
+      )}
+
+      {/* Hero - only show when not logged in */}
+      {!isAuthenticated && (
+        <section className="owlet-hero">
+          <div className="owlet-hero-inner">
+            <div className="owlet-hero-text">
+              <h1>Your library,<br /><em>beautifully connected.</em></h1>
+              <p>
+                Owlet helps public libraries share their collections, events, and
+                resources with their communities — simply, openly, and with care.
+              </p>
+            </div>
+            <div className="owlet-hero-mascot">
+              <img src={owletLogo} alt="Owlet mascot" />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Main content */}
       <main className="owlet-main">
+        <EventsView />
         <PageView />
+
+        {/* Login section */}
+        {!isAuthenticated && (
+          <section id="login" style={{ marginTop: '4rem' }}>
+            <div className="owlet-section-heading">
+              <h2>🔐 Staff Login</h2>
+            </div>
+            <LoginPage />
+          </section>
+        )}
       </main>
 
       {/* Footer */}
@@ -50,6 +76,14 @@ function App() {
         <p>🦉 Owlet CMS — <a href="https://github.com/buffinzz/owletCMS">open source</a> · built for libraries everywhere</p>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

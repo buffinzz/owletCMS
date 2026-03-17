@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { Link } from 'react-router-dom'
 
+const pagesCache: { data: Page[] | null } = {
+  data: null,
+};
 interface Page {
   id: number;
   title: string;
@@ -13,10 +17,25 @@ export default function PageView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Use cache if available
+    if (pagesCache.data) {
+        setPages(pagesCache.data);
+        setLoading(false);
+        return;
+    }
+
+    setLoading(true);
+
     api.get('/pages')
-      .then(res => setPages(res.data))
-      .finally(() => setLoading(false));
-  }, []);
+        .then(res => {
+        pagesCache.data = res.data; // cache it
+        setPages(res.data);
+        })
+        .catch(() => {
+        setPages([]);
+        })
+        .finally(() => setLoading(false));
+    }, []);
 
   if (loading) {
     return (
@@ -40,11 +59,11 @@ export default function PageView() {
       ) : (
         <div className="owlet-pages-grid">
           {pages.map(page => (
-            <div key={page.id} className="owlet-card">
+            <Link key={page.id} to={`/${page.slug}`} className="owlet-card">
               <h3>{page.title}</h3>
-              <p>{page.content}</p>
+              <p>{page.content.slice(0, 144)}...</p>
               <span className="owlet-card-slug">/{page.slug}</span>
-            </div>
+            </Link>
           ))}
         </div>
       )}
