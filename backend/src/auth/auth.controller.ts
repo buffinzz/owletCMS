@@ -19,6 +19,3 @@ export class AuthController {
     return this.usersService.create(body.username, body.password, UserRole.ADMIN);
   }
 }
-// Add to constructor:
-
-
