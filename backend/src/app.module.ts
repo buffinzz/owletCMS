@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 import { PagesModule } from './pages/pages.module';
 import { EventsModule } from './events/events.module';
+import { User } from './users/user.entity';
 import { Page } from './pages/page.entity';
 import { Event } from './events/event.entity';
 
@@ -16,11 +19,14 @@ import { Event } from './events/event.entity';
       username: 'owlet',
       password: 'owlet',
       database: 'owlet_dev',
-      entities: [Page, Event],
+      entities: [Page, Event, User],
       synchronize: true,
     }),
     PagesModule,
     EventsModule,
+    UsersModule,
+    AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
