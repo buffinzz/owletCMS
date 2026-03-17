@@ -1,19 +1,12 @@
-import { useState } from 'react'
-import PageView from './pages/PageView';
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { Routes, Route } from 'react-router-dom'
+import PageView from './pages/PageView'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-      <PageView />
-    </div>
-    </>
+    <Routes>
+      <Route path="/:slug" element={<PageView />} />
+      <Route path="/" element={<div>Welcome to Owlet 🦉</div>} />
+    </Routes>
   )
 }
 

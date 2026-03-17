@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import api from '../api';
 
 interface Page {
@@ -9,20 +10,37 @@ interface Page {
 }
 
 export default function PageView() {
-  const [pages, setPages] = useState<Page[]>([]);
+  const { slug } = useParams()
+  const [page, setPage] = useState<Page | null>(null)
+  const [loading, setLoading] = useState(true)
 
+  // EFFECT (right after state)
   useEffect(() => {
-    api.get('/pages').then(res => setPages(res.data));
-  }, []);
+    setLoading(true)
+
+    fetch(`${api}}/${slug}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Not found')
+        return res.json()
+      })
+      .then(data => {
+        setPage(data)
+        setLoading(false)
+      })
+      .catch(() => {
+        setPage(null)
+        setLoading(false)
+      })
+  }, [slug]) // runs whenever slug changes
+
+  // UI LOGIC (bottom)
+  if (loading) return <div>Loading… 📖</div>
+  if (!page) return <div>Page not found</div>
 
   return (
-    <div>
-      {pages.map(page => (
-        <div key={page.id}>
-          <h1>{page.title}</h1>
-          <p>{page.content}</p>
-        </div>
-      ))}
-    </div>
-  );
+    <main style={{ padding: '2rem' }}>
+      <h1>{page.title}</h1>
+      <div dangerouslySetInnerHTML={{ __html: page.content }} />
+    </main>
+  )
 }
