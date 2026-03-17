@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react';
 import api from '../api';
 
 interface Page {
@@ -10,37 +9,45 @@ interface Page {
 }
 
 export default function PageView() {
-  const { slug } = useParams()
-  const [page, setPage] = useState<Page | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [pages, setPages] = useState<Page[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // EFFECT (right after state)
   useEffect(() => {
-    setLoading(true)
+    api.get('/pages')
+      .then(res => setPages(res.data))
+      .finally(() => setLoading(false));
+  }, []);
 
-    fetch(`${api}}/${slug}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Not found')
-        return res.json()
-      })
-      .then(data => {
-        setPage(data)
-        setLoading(false)
-      })
-      .catch(() => {
-        setPage(null)
-        setLoading(false)
-      })
-  }, [slug]) // runs whenever slug changes
-
-  // UI LOGIC (bottom)
-  if (loading) return <div>Loading… 📖</div>
-  if (!page) return <div>Page not found</div>
+  if (loading) {
+    return (
+      <div className="owlet-loading">
+        <span /><span /><span />
+      </div>
+    );
+  }
 
   return (
-    <main style={{ padding: '2rem' }}>
-      <h1>{page.title}</h1>
-      <div dangerouslySetInnerHTML={{ __html: page.content }} />
-    </main>
-  )
+    <section>
+      <div className="owlet-section-heading">
+        <h2>📄 Pages</h2>
+      </div>
+
+      {pages.length === 0 ? (
+        <div className="owlet-empty">
+          <div className="owlet-empty-icon">🦉</div>
+          <p>No pages yet — the nest is empty but ready.</p>
+        </div>
+      ) : (
+        <div className="owlet-pages-grid">
+          {pages.map(page => (
+            <div key={page.id} className="owlet-card">
+              <h3>{page.title}</h3>
+              <p>{page.content}</p>
+              <span className="owlet-card-slug">/{page.slug}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }
