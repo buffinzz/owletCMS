@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api';
 import owletLogo from '../assets/owlet-logo.png';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +22,7 @@ export default function LoginPage() {
     } catch {
       setError('Invalid username or password.');
     } finally {
+      navigate('/admin');
       setLoading(false);
     }
   };

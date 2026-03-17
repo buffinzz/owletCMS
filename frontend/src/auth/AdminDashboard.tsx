@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api';
 import owletLogo from '../assets/owlet-logo.png';
+import { useNavigate } from 'react-router-dom';
 
 type Tab = 'pages' | 'events';
 
@@ -10,6 +11,7 @@ export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('events');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   // Event form state
   const [eventForm, setEventForm] = useState({
@@ -58,7 +60,7 @@ export default function AdminDashboard() {
             <p>Signed in as <strong>{user?.username}</strong> · {user?.role}</p>
           </div>
         </div>
-        <button className="owlet-btn owlet-btn-ghost" onClick={logout}>
+        <button className="owlet-btn owlet-btn-ghost" onClick={() => { logout(); navigate('/'); }}>
           Sign out
         </button>
       </div>
