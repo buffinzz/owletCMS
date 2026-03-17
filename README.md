@@ -234,6 +234,10 @@ If successful, the project could grow into a shared platform for community insti
 
 ## Development
 
+Start database:
+
+docker compose up
+
 Start backend:
 
 cd backend
