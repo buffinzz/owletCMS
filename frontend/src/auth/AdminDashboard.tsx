@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import owletLogo from '../assets/owlet-logo.png';
+import UsersTab from './UsersTab';
 
-type Tab = 'events' | 'pages';
+type Tab = 'events' | 'pages' | 'users';
 type Mode = 'list' | 'create' | 'edit';
 
 interface Event {
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
     <div className="owlet-admin">
       <div className="owlet-admin-header">
         <div className="owlet-admin-title">
-          <span><img src={owletLogo} alt="Owlet" className="owlet-logo-icon" /></span>
+          <span>🦉</span>
           <div>
             <h2>Admin Dashboard</h2>
             <p>Signed in as <strong>{user?.username}</strong> · {user?.role}</p>
@@ -190,10 +190,21 @@ export default function AdminDashboard() {
           onClick={() => { setTab('pages'); setMode('list'); setEditingId(null); }}>
           📄 Pages
         </button>
-        <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
-          + New {tab === 'events' ? 'Event' : 'Page'}
-        </button>
+        {isAdmin && (
+          <button className={`owlet-tab ${tab === 'users' ? 'active' : ''}`}
+            onClick={() => { setTab('users'); setMode('list'); setEditingId(null); }}>
+            👥 Users
+          </button>
+        )}
+        {tab !== 'users' && (
+          <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
+            + New {tab === 'events' ? 'Event' : 'Page'}
+          </button>
+        )}
       </div>
+
+      {/* ── USERS TAB ── */}
+      {tab === 'users' && <UsersTab />}
 
       {/* ── LIST: Events ── */}
       {mode === 'list' && tab === 'events' && (
