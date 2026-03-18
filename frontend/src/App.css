@@ -667,3 +667,91 @@ body {
   color: #c0392b;
   border: 1px solid #f5c6cb;
 }
+/* ── ADMIN LIST ── */
+.owlet-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.owlet-admin-item {
+  background: var(--white);
+  border: 1px solid var(--cream-dark);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: box-shadow 0.2s;
+}
+
+.owlet-admin-item:hover {
+  box-shadow: 0 2px 12px rgba(61, 31, 110, 0.08);
+}
+
+.owlet-admin-item-info h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.owlet-admin-item-info p {
+  font-size: 0.8rem;
+  color: var(--ink-light);
+  font-weight: 300;
+}
+
+.owlet-admin-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.owlet-btn-action {
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  font-family: 'Source Serif 4', serif;
+  transition: all 0.2s;
+}
+
+.owlet-btn-edit {
+  background: var(--cream-dark);
+  color: var(--purple-deep);
+}
+
+.owlet-btn-edit:hover {
+  background: var(--purple-light);
+}
+
+.owlet-btn-delete {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+.owlet-btn-delete:hover {
+  background: #f5c6cb;
+}
+
+.owlet-btn-new {
+  margin-left: auto;
+  width: auto !important;
+  padding: 0.5rem 1.25rem;
+}
+
+.owlet-form-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.owlet-form-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
