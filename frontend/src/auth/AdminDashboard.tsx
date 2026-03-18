@@ -3,8 +3,9 @@ import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import UsersTab from './UsersTab';
+import SettingsTab from './SettingsTab';
 
-type Tab = 'events' | 'pages' | 'users';
+type Tab = 'events' | 'pages' | 'users' | 'settings';
 type Mode = 'list' | 'create' | 'edit';
 
 interface Event {
@@ -196,7 +197,13 @@ export default function AdminDashboard() {
             👥 Users
           </button>
         )}
-        {tab !== 'users' && (
+        {isAdmin && (
+          <button className={`owlet-tab ${tab === 'settings' ? 'active' : ''}`}
+            onClick={() => { setTab('settings'); setMode('list'); }}>
+            ⚙️ Settings
+          </button>
+        )}
+        {tab !== 'users' && tab !== 'settings' && (
           <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
             + New {tab === 'events' ? 'Event' : 'Page'}
           </button>
@@ -205,6 +212,7 @@ export default function AdminDashboard() {
 
       {/* ── USERS TAB ── */}
       {tab === 'users' && <UsersTab />}
+      {tab === 'settings' && <SettingsTab />}
 
       {/* ── LIST: Events ── */}
       {mode === 'list' && tab === 'events' && (
