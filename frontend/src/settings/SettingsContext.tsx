@@ -43,7 +43,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const hex = settings.theme_primary_colour;
     document.documentElement.style.setProperty('--purple-deep', hex);
 
-    // Derive a lighter mid tone by reducing opacity
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
@@ -55,13 +54,36 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const mid = `#${midR.toString(16).padStart(2,'0')}${midG.toString(16).padStart(2,'0')}${midB.toString(16).padStart(2,'0')}`;
     document.documentElement.style.setProperty('--purple-mid', mid);
 
-    // Light tone for badges and accents
-    const lightR = Math.min(255, r + 100);
-    const lightG = Math.min(255, g + 90);
-    const lightB = Math.min(255, b + 120);
-    const light = `#${lightR.toString(16).padStart(2,'0')}${lightG.toString(16).padStart(2,'0')}${lightB.toString(16).padStart(2,'0')}`;
-    document.documentElement.style.setProperty('--purple-light', light);
+    // Convert to HSL — must happen BEFORE using h, s, l
+    const toHsl = (r: number, g: number, b: number) => {
+      const rn = r / 255, gn = g / 255, bn = b / 255;
+      const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+      let h = 0, s = 0;
+      const l = (max + min) / 2;
+      if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case rn: h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6; break;
+          case gn: h = ((bn - rn) / d + 2) / 6; break;
+          case bn: h = ((rn - gn) / d + 4) / 6; break;
+        }
+      }
+      return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+    };
+
+    const [h, s, l] = toHsl(r, g, b);
+
+    // Light tone — always readable on dark backgrounds
+    const lightL = Math.max(75, Math.min(l + 45, 88));
+    document.documentElement.style.setProperty('--purple-light', `hsl(${h}, ${Math.max(s - 20, 20)}%, ${lightL}%)`);
+
+    // Complementary accent colour (rotate hue -90°)
+    const compHue = (h + 270) % 360;
+    document.documentElement.style.setProperty('--teal', `hsl(${compHue}, ${s}%, ${Math.min(l + 10, 60)}%)`);
+    document.documentElement.style.setProperty('--teal-light', `hsl(${compHue}, ${s}%, ${Math.min(l + 25, 75)}%)`);
   }
+
   if (settings.library_name) {
     document.title = settings.library_name;
   }
