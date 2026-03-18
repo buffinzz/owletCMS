@@ -1,0 +1,68 @@
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { UserRole } from './user.entity';
+
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  // Public staff directory
+  @Get('directory')
+  findDirectory() {
+    return this.usersService.findDirectory();
+  }
+
+  // My own profile (any logged in user)
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMe(@Request() req: { user: { id: number } }) {
+    const user = await this.usersService.findById(req.user.id);
+    if (!user) return null;
+    // Strip password before returning
+    const { password, ...profile } = user;
+    return profile;
+  }
+
+  // Update my own profile
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  async updateMe(@Request() req: { user: { id: number } }, @Body() data: any) {
+    const { password, role, ...safeData } = data;
+    return this.usersService.update(req.user.id, safeData);
+  }
+
+  // Admin: list all users
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  findAll() {
+    return this.usersService.findAll();
+  }
+
+  // Admin: create user
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  create(@Body() body: { username: string; password: string; role: UserRole }) {
+    return this.usersService.create(body.username, body.password, body.role);
+  }
+
+  // Admin: update any user
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.usersService.update(+id, data);
+  }
+
+  // Admin: delete user
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
+  }
+}
