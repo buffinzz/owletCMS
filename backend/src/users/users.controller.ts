@@ -65,4 +65,12 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
+
+  @Get('profile/:username')
+  async getProfile(@Param('username') username: string) {
+    const user = await this.usersService.findByUsername(username);
+    if (!user) return null;
+    const { id, displayName, jobTitle, bio, location, photoUrl, customFields } = user;
+    return { id, username: user.username, displayName, jobTitle, bio, location, photoUrl, customFields };
+  }
 }

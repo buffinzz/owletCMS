@@ -22,10 +22,10 @@ export class UsersService {
   // Public directory — never expose password, private fields
   async findDirectory(): Promise<Partial<User>[]> {
     return this.usersRepository.find({
-      select: ['id', 'displayName', 'jobTitle', 'bio', 'location', 'photoUrl', 'customFields'],
+      select: ['id', 'username', 'displayName', 'jobTitle', 'bio', 'location', 'photoUrl', 'customFields'],
     });
-  }
-
+}
+  
   async create(username: string, password: string, role: UserRole = UserRole.VIEWER): Promise<User> {
     const hashed = await bcrypt.hash(password, 10);
     const user = this.usersRepository.create({ username, password: hashed, role });

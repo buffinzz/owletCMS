@@ -9,6 +9,8 @@ import { EventsModule } from './events/events.module';
 import { User } from './users/user.entity';
 import { Page } from './pages/page.entity';
 import { Event } from './events/event.entity';
+import { MediaModule } from './media/media.module';
+import { Media } from './media/media.entity';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { Event } from './events/event.entity';
       username: 'owlet',
       password: 'owlet',
       database: 'owlet_dev',
-      entities: [Page, Event, User],
+      entities: [Page, Event, User, Media],
       synchronize: true,
     }),
     PagesModule,
@@ -27,6 +29,7 @@ import { Event } from './events/event.entity';
     UsersModule,
     AuthModule,
     UsersModule,
+    MediaModule,
   ],
 })
 export class AppModule {}
