@@ -1,0 +1,171 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../auth/AuthContext';
+import { useSettings } from '../settings/SettingsContext';
+import api from '../api';
+
+const THEME_COLOURS = [
+  { label: 'Owlet Purple', value: '#3d1f6e' },
+  { label: 'Library Teal', value: '#2a9d8f' },
+  { label: 'Archive Navy', value: '#1a2744' },
+  { label: 'Reading Red', value: '#8b1a1a' },
+  { label: 'Forest Green', value: '#2d5a27' },
+  { label: 'Amber Gold', value: '#b45309' },
+];
+
+export default function SettingsTab() {
+  const { user } = useAuth();
+  const { settings, refresh } = useSettings();
+  const [form, setForm] = useState({
+    library_name: '',
+    library_tagline: '',
+    library_email: '',
+    library_phone: '',
+    library_address: '',
+    library_city: '',
+    library_logo_url: '',
+    theme_primary_colour: '#3d1f6e',
+  });
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const authHeader = { headers: { Authorization: `Bearer ${user?.token}` } };
+
+  // Populate form from current settings
+  useEffect(() => {
+    setForm({
+      library_name: settings.library_name || '',
+      library_tagline: settings.library_tagline || '',
+      library_email: settings.library_email || '',
+      library_phone: settings.library_phone || '',
+      library_address: settings.library_address || '',
+      library_city: settings.library_city || '',
+      library_logo_url: settings.library_logo_url || '',
+      theme_primary_colour: settings.theme_primary_colour || '#3d1f6e',
+    });
+  }, [settings]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSuccess('');
+    try {
+      await api.patch('/settings', form, authHeader);
+      refresh(); // reload settings context so changes apply immediately
+      setSuccess('Settings saved! 🎉');
+      setTimeout(() => setSuccess(''), 4000);
+    } catch {
+      setError('Failed to save settings.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form className="owlet-admin-form" onSubmit={handleSubmit}>
+      {success && <div className="owlet-alert owlet-alert-success">{success}</div>}
+      {error && <div className="owlet-alert owlet-alert-error">{error}</div>}
+
+      <p className="owlet-form-section-label">Library Info</p>
+      <div className="owlet-field-row">
+        <div className="owlet-field">
+          <label>Library Name</label>
+          <input
+            value={form.library_name}
+            onChange={e => setForm({ ...form, library_name: e.target.value })}
+            placeholder="Franklin County Public Library"
+          />
+        </div>
+        <div className="owlet-field">
+          <label>Tagline</label>
+          <input
+            value={form.library_tagline}
+            onChange={e => setForm({ ...form, library_tagline: e.target.value })}
+            placeholder="Your community knowledge space"
+          />
+        </div>
+      </div>
+
+      <p className="owlet-form-section-label" style={{ marginTop: '1rem' }}>Contact & Location</p>
+      <div className="owlet-field-row">
+        <div className="owlet-field">
+          <label>Email</label>
+          <input
+            type="email"
+            value={form.library_email}
+            onChange={e => setForm({ ...form, library_email: e.target.value })}
+            placeholder="info@library.org"
+          />
+        </div>
+        <div className="owlet-field">
+          <label>Phone</label>
+          <input
+            value={form.library_phone}
+            onChange={e => setForm({ ...form, library_phone: e.target.value })}
+            placeholder="555-0100"
+          />
+        </div>
+      </div>
+      <div className="owlet-field-row">
+        <div className="owlet-field">
+          <label>Street Address</label>
+          <input
+            value={form.library_address}
+            onChange={e => setForm({ ...form, library_address: e.target.value })}
+            placeholder="123 Main Street"
+          />
+        </div>
+        <div className="owlet-field">
+          <label>City / Region</label>
+          <input
+            value={form.library_city}
+            onChange={e => setForm({ ...form, library_city: e.target.value })}
+            placeholder="Springfield, ON"
+          />
+        </div>
+      </div>
+
+      <p className="owlet-form-section-label" style={{ marginTop: '1rem' }}>Appearance</p>
+      <div className="owlet-field">
+        <label>Theme Colour</label>
+        <div className="owlet-colour-grid">
+          {THEME_COLOURS.map(colour => (
+            <button
+              key={colour.value}
+              type="button"
+              className={`owlet-colour-swatch ${form.theme_primary_colour === colour.value ? 'selected' : ''}`}
+              style={{ background: colour.value }}
+              onClick={() => setForm({ ...form, theme_primary_colour: colour.value })}
+              title={colour.label}
+            >
+              {form.theme_primary_colour === colour.value && '✓'}
+            </button>
+          ))}
+        </div>
+        <p className="owlet-image-hint" style={{ marginTop: '0.5rem' }}>
+          Selected: {THEME_COLOURS.find(c => c.value === form.theme_primary_colour)?.label || 'Custom'}
+        </p>
+      </div>
+      <div className="owlet-field">
+        <label>Logo URL <span style={{ fontWeight: 300, textTransform: 'none' }}>(leave blank to use Owlet default)</span></label>
+        <input
+          value={form.library_logo_url}
+          onChange={e => setForm({ ...form, library_logo_url: e.target.value })}
+          placeholder="https://your-library.org/logo.png"
+        />
+      </div>
+
+      <div className="owlet-form-actions" style={{ marginTop: '1rem' }}>
+        <button
+          type="submit"
+          className="owlet-btn owlet-btn-primary"
+          style={{ width: 'auto' }}
+          disabled={saving}
+        >
+          {saving ? 'Saving...' : 'Save Settings ⚙️'}
+        </button>
+      </div>
+    </form>
+  );
+}
