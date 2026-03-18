@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import UsersTab from './UsersTab';
 import SettingsTab from './SettingsTab';
+import ImageUpload from '../components/ImageUpload';
 
 type Tab = 'events' | 'pages' | 'users' | 'settings';
 type Mode = 'list' | 'create' | 'edit';
@@ -29,7 +30,7 @@ interface Page {
 
 const emptyEvent = {
   title: '', slug: '', description: '',
-  startDate: '', location: '', audience: '', isPublished: true,
+  startDate: '', location: '', audience: '', isPublished: true, imageUrl: '',
 };
 
 const emptyPage = { title: '', slug: '', content: '' };
@@ -273,6 +274,12 @@ export default function AdminDashboard() {
           <div className="owlet-field">
             <label>Description</label>
             <textarea value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} placeholder="Tell people what to expect..." rows={4} required />
+            <ImageUpload
+              currentUrl={eventForm.imageUrl}
+              onUpload={url => setEventForm({ ...eventForm, imageUrl: url })}
+              label="Event Image / Flyer"
+              size="large"
+            />
           </div>
           <div className="owlet-field-row">
             <div className="owlet-field">

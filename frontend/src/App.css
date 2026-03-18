@@ -1291,3 +1291,14 @@ body {
   line-height: 1.7;
   font-weight: 300;
 }
+.owlet-event-image {
+  width: 120px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.owlet-event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

@@ -34,4 +34,7 @@ export class Event {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column({ nullable: true })
+  imageUrl: string;
 }

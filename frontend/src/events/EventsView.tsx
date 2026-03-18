@@ -64,6 +64,11 @@ export default function EventsView() {
                   <span className="owlet-event-num">{start.date}</span>
                   <span className="owlet-event-month">{start.month}</span>
                 </div>
+                {event.imageUrl && (
+                  <div className="owlet-event-image">
+                    <img src={event.imageUrl} alt={event.title} />
+                  </div>
+                  )}
                 <div className="owlet-event-body">
                   <h3>{event.title}</h3>
                   <p>{event.description}</p>
