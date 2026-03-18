@@ -25,4 +25,13 @@ export class EventsService {
     const newEvent = this.eventsRepository.create(event);
     return this.eventsRepository.save(newEvent);
   }
+
+  async update(id: number, data: Partial<Event>): Promise<Event | null> {
+    await this.eventsRepository.update(id, data);
+    return this.eventsRepository.findOneBy({ id });
+  }
+
+  async remove(id: number): Promise<void> {
+    await this.eventsRepository.delete(id);
+  }
 }

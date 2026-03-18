@@ -23,4 +23,12 @@ export class PagesService {
     const newPage = this.pagesRepository.create(page);
     return this.pagesRepository.save(newPage);
   }
+  async update(id: number, data: Partial<Page>): Promise<Page | null> {
+    await this.pagesRepository.update(id, data);
+    return this.pagesRepository.findOneBy({ id });
+  }
+
+  async remove(id: number): Promise<void> {
+    await this.pagesRepository.delete(id);
+  }
 }
