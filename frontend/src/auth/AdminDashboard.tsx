@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import owletLogo from '../assets/owlet-logo.png';
 
 type Tab = 'events' | 'pages';
 type Mode = 'list' | 'create' | 'edit';
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
     <div className="owlet-admin">
       <div className="owlet-admin-header">
         <div className="owlet-admin-title">
-          <span>🦉</span>
+          <span><img src={owletLogo} alt="Owlet" className="owlet-logo-icon" /></span>
           <div>
             <h2>Admin Dashboard</h2>
             <p>Signed in as <strong>{user?.username}</strong> · {user?.role}</p>
