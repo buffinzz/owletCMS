@@ -19,7 +19,8 @@ export default function PublicLayout() {
             <a href="#">Collections</a>
             <a href="#">Events</a>
             <a href="#">Resources</a>
-            <Link to="/admin/login">Staff login</Link>
+            
+            <Link to="/staff">Staff</Link>
           </nav>
         </div>
       </header>
@@ -46,6 +47,7 @@ export default function PublicLayout() {
 
       <footer className="owlet-footer">
         <p>🦉 Owlet CMS — <a href="https://github.com/buffinzz/owletCMS">open source</a> · built for libraries everywhere</p>
+        <Link to="/admin/login">Staff login</Link>
       </footer>
     </div>
   );

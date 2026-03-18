@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api';
+import ImageUpload from '../components/ImageUpload';
+import { Link } from 'react-router-dom';
 
 interface User {
   id: number;
@@ -24,6 +26,7 @@ const emptyUserForm = {
   phone: '',
   location: '',
   bio: '',
+  photoUrl: '',
   role: 'viewer',
   emergencyContact: '',
   notes: '',
@@ -145,7 +148,9 @@ export default function UsersTab() {
                 <div key={u.id} className="owlet-admin-item">
                   <div className="owlet-admin-item-info">
                     <h3>
-                      {u.displayName || u.username}
+                      <Link to={`/staff/${u.username}`} className="owlet-profile-link">
+                        {u.displayName || u.username}
+                      </Link>
                       <span className="owlet-role-badge" style={{ color: roleColor(u.role) }}>
                         {u.role}
                       </span>
@@ -218,6 +223,12 @@ export default function UsersTab() {
           <p className="owlet-form-section-label" style={{ marginTop: '1rem' }}>
             Public Profile
           </p>
+          <ImageUpload
+            currentUrl={form.photoUrl}
+            onUpload={url => setForm({ ...form, photoUrl: url })}
+            label="Profile Photo"
+            size="medium"
+          />
           <div className="owlet-field-row">
             <div className="owlet-field">
               <label>Display Name</label>

@@ -795,3 +795,499 @@ body {
   box-shadow: 0 0 0 3px rgba(107, 63, 160, 0.1);
   background: var(--white);
 }
+/* ── IMAGE UPLOAD ── */
+.owlet-image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.owlet-field-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  font-weight: 400;
+}
+
+.owlet-image-upload-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.owlet-image-preview {
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--cream-dark);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color 0.2s;
+  background: var(--cream);
+}
+
+.owlet-image-preview:hover {
+  border-color: var(--purple-mid);
+}
+
+.owlet-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.owlet-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  opacity: 0.4;
+}
+
+.owlet-image-uploading {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.owlet-image-upload-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.owlet-image-hint {
+  font-size: 0.75rem;
+  color: var(--ink-light);
+  font-weight: 300;
+  font-style: italic;
+}
+/* ── HERO SHORT ── */
+.owlet-hero-short {
+  padding: 3rem 2rem 2.5rem;
+}
+
+/* ── STAFF DIRECTORY ── */
+.owlet-staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.owlet-staff-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 1.75rem;
+  border: 1px solid var(--cream-dark);
+  box-shadow: 0 2px 12px rgba(61, 31, 110, 0.06);
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.owlet-staff-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(61, 31, 110, 0.12);
+}
+
+.owlet-staff-photo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--cream-dark);
+  flex-shrink: 0;
+}
+
+.owlet-staff-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.owlet-staff-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+.owlet-staff-info h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.owlet-staff-title {
+  color: var(--teal);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.2rem;
+}
+
+.owlet-staff-location {
+  color: var(--ink-light);
+  font-size: 0.8rem;
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.owlet-staff-bio {
+  color: var(--ink-light);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  font-weight: 300;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── STAFF PROFILE ── */
+.owlet-profile-card {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1px solid var(--cream-dark);
+  box-shadow: 0 2px 20px rgba(61, 31, 110, 0.08);
+  overflow: hidden;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.owlet-profile-header {
+  background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid));
+  padding: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.owlet-profile-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid rgba(255,255,255,0.3);
+  flex-shrink: 0;
+}
+
+.owlet-profile-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.owlet-profile-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+.owlet-profile-header-info h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--white);
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.owlet-profile-title {
+  color: var(--amber-light);
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.owlet-profile-location {
+  color: var(--purple-light);
+  font-size: 0.9rem;
+  font-weight: 300;
+}
+
+.owlet-profile-section {
+  padding: 1.75rem 2.5rem;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.owlet-profile-section:last-child {
+  border-bottom: none;
+}
+
+.owlet-profile-bio {
+  color: var(--ink-light);
+  line-height: 1.8;
+  font-size: 1rem;
+  font-weight: 300;
+}
+
+.owlet-profile-field {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.4rem 0;
+}
+
+.owlet-profile-field-full {
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.owlet-profile-field-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.owlet-profile-field a {
+  color: var(--teal);
+  text-decoration: none;
+}
+
+.owlet-profile-private {
+  background: #fdf8f0;
+}
+
+.owlet-profile-private h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.owlet-profile-private h3 span {
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.75rem;
+  color: var(--ink-light);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.owlet-profile-private-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+@media (max-width: 600px) {
+  .owlet-profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+.owlet-profile-link {
+  color: var(--purple-deep);
+  text-decoration: none;
+}
+
+.owlet-profile-link:hover {
+  color: var(--purple-mid);
+  text-decoration: underline;
+}
+/* ── SETUP WIZARD ── */
+.owlet-setup-wrap {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--purple-deep) 0%, var(--purple-mid) 60%, var(--teal) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.owlet-setup-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 3rem;
+  width: 100%;
+  max-width: 580px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+}
+
+.owlet-setup-logo {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.owlet-setup-logo img {
+  width: 80px;
+  height: auto;
+}
+
+/* Progress */
+.owlet-setup-progress {
+  margin-bottom: 2.5rem;
+}
+
+.owlet-setup-progress-bar {
+  height: 4px;
+  background: var(--cream-dark);
+  border-radius: 2px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.owlet-setup-progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--purple-mid), var(--teal));
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.owlet-setup-steps {
+  display: flex;
+  justify-content: space-between;
+}
+
+.owlet-setup-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.owlet-setup-step.active,
+.owlet-setup-step.done {
+  opacity: 1;
+}
+
+.owlet-setup-step-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  background: var(--white);
+  transition: all 0.2s;
+}
+
+.owlet-setup-step.active .owlet-setup-step-icon {
+  border-color: var(--purple-mid);
+  background: var(--purple-mid);
+  color: white;
+}
+
+.owlet-setup-step.done .owlet-setup-step-icon {
+  border-color: var(--teal);
+  background: var(--teal);
+  color: white;
+  font-size: 0.85rem;
+}
+
+.owlet-setup-step-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+}
+
+/* Body */
+.owlet-setup-body h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.owlet-setup-body > p {
+  color: var(--ink-light);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+}
+
+.owlet-setup-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.owlet-setup-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Colour swatches */
+.owlet-colour-grid {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.owlet-colour-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.owlet-colour-swatch:hover {
+  transform: scale(1.1);
+}
+
+.owlet-colour-swatch.selected {
+  border-color: var(--ink);
+  transform: scale(1.15);
+}
+
+/* Done screen */
+.owlet-setup-done {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.owlet-setup-done-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.owlet-setup-done h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.owlet-setup-done p {
+  color: var(--ink-light);
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 300;
+}
