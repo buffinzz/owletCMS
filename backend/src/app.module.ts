@@ -1,21 +1,25 @@
+import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
 import { PagesModule } from './pages/pages.module';
 import { EventsModule } from './events/events.module';
-import { User } from './users/user.entity';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { MediaModule } from './media/media.module';
+import { SettingsModule } from './settings/settings.module';
+import { CatalogModule } from './catalog/catalog.module';
 import { Page } from './pages/page.entity';
 import { Event } from './events/event.entity';
-import { MediaModule } from './media/media.module';
+import { User } from './users/user.entity';
 import { Media } from './media/media.entity';
-import { SettingsModule } from './settings/settings.module';
 import { Setting } from './settings/setting.entity';
+import { CollectionItem } from './catalog/collection-item.entity';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -23,16 +27,16 @@ import { Setting } from './settings/setting.entity';
       username: 'owlet',
       password: 'owlet',
       database: 'owlet_dev',
-      entities: [Page, Event, User, Media, Setting],
+      entities: [Page, Event, User, Media, Setting, CollectionItem],
       synchronize: true,
     }),
     PagesModule,
     EventsModule,
-    UsersModule,
     AuthModule,
     UsersModule,
     MediaModule,
     SettingsModule,
+    CatalogModule,
   ],
 })
 export class AppModule {}
