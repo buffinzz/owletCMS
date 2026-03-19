@@ -9,7 +9,7 @@ import { CollectionItem } from './collection-item.entity';
 export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}
 
-  // ── These MUST come before :id route ──
+  // ── Specific routes FIRST ──
   @Get('new-arrivals')
   getNewArrivals(@Query('count') count?: string) {
     return this.catalogService.findNewArrivals(count ? +count : 10);
@@ -20,6 +20,13 @@ export class CatalogController {
     return this.catalogService.search(query, count ? +count : 10);
   }
 
+  @Get('sync-history')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  getSyncHistory() {
+    return this.catalogService.getSyncHistory();
+  }
+
   @Post('sync')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
@@ -27,12 +34,32 @@ export class CatalogController {
     return this.catalogService.syncNewArrivals(count ? +count : 20);
   }
 
-  // ── Generic routes AFTER specific ones ──
-  @Get()
-  findAll() {
-    return this.catalogService.findAll();
+  @Patch('bulk-visibility')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  bulkVisibility(@Body() body: { ids: number[]; isVisible: boolean }) {
+    return this.catalogService.bulkToggleVisibility(body.ids, body.isVisible);
   }
 
+  @Delete('bulk-delete')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  bulkDelete(@Body() body: { ids: number[] }) {
+    return this.catalogService.bulkDelete(body.ids);
+  }
+
+  // ── Generic routes ──
+  @Get()
+  findAll(
+    @Query('search') search?: string,
+    @Query('source') source?: string,
+    @Query('format') format?: string,
+    @Query('visible') visible?: string,
+  ) {
+    return this.catalogService.findAll({ search, source, format, visible });
+  }
+
+  // ── Parameterised routes LAST ──
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.catalogService.findOne(+id);

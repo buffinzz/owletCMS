@@ -6,8 +6,9 @@ import UsersTab from './UsersTab';
 import SettingsTab from './SettingsTab';
 import ImageUpload from '../components/ImageUpload';
 import MediaLibrary from '../media/MediaLibrary';
+import CatalogTab from '../catalog/CatalogTab';
 
-type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media';
+type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | 'catalog';
 type Mode = 'list' | 'create' | 'edit';
 
 interface Event {
@@ -209,7 +210,11 @@ export default function AdminDashboard() {
           onClick={() => { setTab('media'); setMode('list'); }}>
           📁 Media
         </button>
-        {tab !== 'users' && tab !== 'settings' && tab !== 'media' && (
+        <button className={`owlet-tab ${tab === 'catalog' ? 'active' : ''}`}
+          onClick={() => { setTab('catalog'); setMode('list'); }}>
+          📚 Catalog
+        </button>
+        {tab !== 'users' && tab !== 'settings' && tab !== 'media'  && tab !== 'catalog' && (
           <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
             + New {tab === 'events' ? 'Event' : 'Page'}
           </button>
@@ -220,7 +225,8 @@ export default function AdminDashboard() {
       {tab === 'users' && <UsersTab />}
       {tab === 'settings' && <SettingsTab />}
       {tab === 'media' && <MediaLibrary />}
-
+      {tab === 'catalog' && <CatalogTab />}
+      
       {/* ── LIST: Events ── */}
       {mode === 'list' && tab === 'events' && (
         <div className="owlet-admin-list">

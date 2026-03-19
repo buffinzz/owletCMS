@@ -15,6 +15,8 @@ import { Media } from './media/media.entity';
 import { Setting } from './settings/setting.entity';
 import { CollectionItem } from './catalog/collection-item.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { Collection } from './catalog/collection.entity';
+import { SyncLog } from './catalog/sync-log.entity';
 
 @Module({
   imports: [
@@ -27,7 +29,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       username: 'owlet',
       password: 'owlet',
       database: 'owlet_dev',
-      entities: [Page, Event, User, Media, Setting, CollectionItem],
+      entities: [Page, Event, User, Media, Setting, CollectionItem, Collection, SyncLog],
       synchronize: true,
     }),
     PagesModule,
