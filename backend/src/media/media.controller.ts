@@ -1,15 +1,15 @@
 import {
-  Controller, Post, Get, Delete, Param,
+  Controller, Post, Get, Delete, Patch, Param, Body,
   UseGuards, UseInterceptors, UploadedFile,
   Request, Res
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
+import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MediaService } from './media.service';
 import { v4 as uuid } from 'uuid';
-import type { Response } from 'express';
 
 @Controller('media')
 export class MediaController {
@@ -25,12 +25,7 @@ export class MediaController {
         cb(null, `${unique}${extname(file.originalname)}`);
       },
     }),
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
-    fileFilter: (req, file, cb) => {
-      const allowed = /jpeg|jpg|png|gif|webp/;
-      const valid = allowed.test(file.mimetype);
-      cb(null, valid);
-    },
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
   }))
   async upload(
     @UploadedFile() file: Express.Multer.File,
@@ -38,9 +33,12 @@ export class MediaController {
   ) {
     const media = await this.mediaService.save(file, req.user.id);
     return {
-      url: `/media/file/${media.filename}`,
+      url: `http://localhost:3000/media/file/${media.filename}`,
       filename: media.filename,
       id: media.id,
+      originalName: media.originalName,
+      mimetype: media.mimetype,
+      size: media.size,
     };
   }
 
@@ -56,9 +54,15 @@ export class MediaController {
     return this.mediaService.findAll();
   }
 
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  update(@Param('id') id: string, @Body() data: { alt?: string; caption?: string }) {
+    return this.mediaService.update(+id, data);
+  }
+
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.mediaService.remove(+id);
   }
 }

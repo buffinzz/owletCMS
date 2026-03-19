@@ -18,6 +18,12 @@ export class Media {
   size: number;
 
   @Column({ nullable: true })
+  alt: string;
+
+  @Column({ nullable: true })
+  caption: string;
+
+  @Column({ nullable: true })
   uploadedBy: number;
 
   @CreateDateColumn()

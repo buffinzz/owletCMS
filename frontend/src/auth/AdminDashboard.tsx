@@ -5,8 +5,9 @@ import api from '../api';
 import UsersTab from './UsersTab';
 import SettingsTab from './SettingsTab';
 import ImageUpload from '../components/ImageUpload';
+import MediaLibrary from '../media/MediaLibrary';
 
-type Tab = 'events' | 'pages' | 'users' | 'settings';
+type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media';
 type Mode = 'list' | 'create' | 'edit';
 
 interface Event {
@@ -204,7 +205,11 @@ export default function AdminDashboard() {
             ⚙️ Settings
           </button>
         )}
-        {tab !== 'users' && tab !== 'settings' && (
+        <button className={`owlet-tab ${tab === 'media' ? 'active' : ''}`}
+          onClick={() => { setTab('media'); setMode('list'); }}>
+          📁 Media
+        </button>
+        {tab !== 'users' && tab !== 'settings' && tab !== 'media' && (
           <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
             + New {tab === 'events' ? 'Event' : 'Page'}
           </button>
@@ -214,6 +219,7 @@ export default function AdminDashboard() {
       {/* ── USERS TAB ── */}
       {tab === 'users' && <UsersTab />}
       {tab === 'settings' && <SettingsTab />}
+      {tab === 'media' && <MediaLibrary />}
 
       {/* ── LIST: Events ── */}
       {mode === 'list' && tab === 'events' && (
