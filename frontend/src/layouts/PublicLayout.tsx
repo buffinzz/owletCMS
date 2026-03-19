@@ -3,6 +3,7 @@ import PageView from '../pages/PageView';
 import EventsView from '../events/EventsView';
 import owletLogo from '../assets/owlet-logo.png';
 import { useSettings } from '../settings/SettingsContext';
+import NewArrivals from '../catalog/NewArrivals';
 
 export default function PublicLayout() {
   const { settings } = useSettings();
@@ -50,6 +51,7 @@ export default function PublicLayout() {
 
       <main className="owlet-main">
         <EventsView />
+        <NewArrivals count={20} />
         <PageView />
       </main>
 
