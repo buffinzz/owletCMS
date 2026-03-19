@@ -31,6 +31,20 @@ export class CollectionsController {
   }
 
   // ── Parameterised routes LAST ──
+  @Get('id/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  findOne(@Param('id') id: string) {
+    return this.collectionsService.findOne(+id);
+  }
+
+  @Get('by-item/:itemId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'editor')
+  findByItem(@Param('itemId') itemId: string) {
+    return this.collectionsService.findByItem(+itemId);
+  }
+
   @Get(':slug')
   findBySlug(@Param('slug') slug: string) {
     return this.collectionsService.findBySlug(slug);

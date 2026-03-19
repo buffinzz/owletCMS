@@ -1975,3 +1975,55 @@ body {
   border-color: #f5c6cb !important;
   background: #fdecea !important;
 }
+/* ── COLLECTION PICKER ── */
+.owlet-collection-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--cream);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.owlet-collection-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.owlet-collection-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.owlet-collection-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--white);
+  border: 1px solid var(--cream-dark);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.owlet-collection-search-results {
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.owlet-collection-search-results .owlet-collection-item-row {
+  border: none;
+  border-bottom: 1px solid var(--cream-dark);
+  border-radius: 0;
+}
+
+.owlet-collection-search-results .owlet-collection-item-row:last-child {
+  border-bottom: none;
+}

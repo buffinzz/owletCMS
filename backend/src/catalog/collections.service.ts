@@ -83,4 +83,11 @@ export class CollectionsService {
       .whereInIds(ids)
       .execute();
   }
+  async findByItem(itemId: number): Promise<Collection[]> {
+    return this.collectionsRepository
+      .createQueryBuilder('collection')
+      .innerJoin('collection.items', 'item')
+      .where('item.id = :itemId', { itemId })
+      .getMany();
+  }
 }
