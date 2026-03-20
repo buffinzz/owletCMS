@@ -7,8 +7,9 @@ import SettingsTab from './SettingsTab';
 import ImageUpload from '../components/ImageUpload';
 import MediaLibrary from '../media/MediaLibrary';
 import CatalogTab from '../catalog/CatalogTab';
+import DigitalResourcesTab from '../digital-resources/DigitalResourcesTab';
 
-type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | 'catalog';
+type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | 'catalog' | 'digital-resources';
 type Mode = 'list' | 'create' | 'edit';
 
 interface Event {
@@ -222,7 +223,11 @@ export default function AdminDashboard() {
           onClick={() => { setTab('catalog'); setMode('list'); }}>
           📚 Catalog
         </button>
-        {tab !== 'users' && tab !== 'settings' && tab !== 'media'  && tab !== 'catalog' && (
+        <button className={`owlet-tab ${tab === 'digital-resources' ? 'active' : ''}`}
+          onClick={() => { setTab('digital-resources'); setMode('list'); }}>
+          💻 Resources
+        </button>
+        {tab !== 'users' && tab !== 'settings' && tab !== 'media' && tab !== 'catalog' && tab !== 'digital-resources' && (
           <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
             + New {tab === 'events' ? 'Event' : 'Page'}
           </button>
@@ -234,6 +239,7 @@ export default function AdminDashboard() {
       {tab === 'settings' && <SettingsTab />}
       {tab === 'media' && <MediaLibrary />}
       {tab === 'catalog' && <CatalogTab />}
+      {tab === 'digital-resources' && <DigitalResourcesTab />}
       
       {/* ── LIST: Events ── */}
       {mode === 'list' && tab === 'events' && (
