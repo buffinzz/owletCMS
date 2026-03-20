@@ -1,13 +1,15 @@
 import {
   Controller, Post, Get, Delete, Patch, Param, Body,
   UseGuards, UseInterceptors, UploadedFile,
-  Request, Res
+  Request, Res, Query
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { MediaService } from './media.service';
 import { v4 as uuid } from 'uuid';
 
@@ -48,15 +50,15 @@ export class MediaController {
     res.sendFile(filePath);
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  findAll() {
-    return this.mediaService.findAll();
-  }
-
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() data: { alt?: string; caption?: string }) {
+  update(@Param('id') id: string, @Body() data: {
+    title?: string;
+    alt?: string;
+    description?: string;
+    tags?: string[];
+    url?: string;
+  }) {
     return this.mediaService.update(+id, data);
   }
 
@@ -64,5 +66,24 @@ export class MediaController {
   @UseGuards(JwtAuthGuard)
   async remove(@Param('id') id: string) {
     return this.mediaService.remove(+id);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  findAll(@Query('search') search?: string) {
+    return this.mediaService.findAll(search);
+  }
+
+  @Post(':id/reindex')
+  @UseGuards(JwtAuthGuard)
+  reindex(@Param('id') id: string) {
+    return this.mediaService.reindex(+id);
+  }
+
+  @Post('reindex-all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async reindexAll() {
+    return this.mediaService.reindexAll();
   }
 }

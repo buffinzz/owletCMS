@@ -17,6 +17,8 @@ import { CollectionItem } from './catalog/collection-item.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { Collection } from './catalog/collection.entity';
 import { SyncLog } from './catalog/sync-log.entity';
+import { DigitalResourcesModule } from './digital-resources/digital-resources.module';
+import { DigitalResource } from './digital-resources/digital-resource.entity';
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { SyncLog } from './catalog/sync-log.entity';
       username: 'owlet',
       password: 'owlet',
       database: 'owlet_dev',
-      entities: [Page, Event, User, Media, Setting, CollectionItem, Collection, SyncLog],
+      entities: [Page, Event, User, Media, Setting, CollectionItem, Collection, SyncLog, DigitalResource],
       synchronize: true,
     }),
     PagesModule,
@@ -39,6 +41,7 @@ import { SyncLog } from './catalog/sync-log.entity';
     MediaModule,
     SettingsModule,
     CatalogModule,
+    DigitalResourcesModule,
   ],
 })
 export class AppModule {}
