@@ -9,6 +9,7 @@ interface SiteSettings {
   library_address?: string;
   library_city?: string;
   library_logo_url?: string;
+  library_logo_alt?: string;
   theme_primary_colour?: string;
 }
 

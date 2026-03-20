@@ -84,7 +84,10 @@ export default function StaffProfile() {
         <div className="owlet-profile-header">
           <div className="owlet-profile-photo">
             {profile?.photoUrl ? (
-              <img src={profile.photoUrl} alt={profile.displayName || profile?.username} />
+              <img 
+                src={profile.photoUrl} 
+                alt={profile.photoAlt || profile.displayName || profile?.username} 
+              />
             ) : (
               <div className="owlet-profile-photo-placeholder">🦉</div>
             )}

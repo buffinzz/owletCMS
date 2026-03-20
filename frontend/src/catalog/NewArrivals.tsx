@@ -8,6 +8,7 @@ interface CollectionItem {
   isbn?: string;
   summary?: string;
   coverUrl?: string;
+  coverAlt?: string;
   publishedDate?: string;
   subjects?: string[];
   externalUrl?: string;
@@ -53,9 +54,8 @@ export default function NewArrivals({ count = 10 }: NewArrivalsProps) {
               {item.coverUrl ? (
                 <img
                   src={item.coverUrl}
-                  alt={item.title}
+                  alt={item.coverAlt || item.title}
                   onError={e => {
-                    // Hide broken cover images gracefully
                     (e.target as HTMLImageElement).style.display = 'none';
                     (e.target as HTMLImageElement).parentElement!.classList.add('owlet-book-cover-missing');
                   }}
@@ -75,7 +75,7 @@ export default function NewArrivals({ count = 10 }: NewArrivalsProps) {
         <div className="owlet-book-detail">
           <div className="owlet-book-detail-cover">
             {selected.coverUrl && (
-              <img src={selected.coverUrl} alt={selected.title} />
+              <img src={selected.coverUrl} alt={selected.coverAlt || selected.title} />
             )}
           </div>
           <div className="owlet-book-detail-info">

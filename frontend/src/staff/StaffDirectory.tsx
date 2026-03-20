@@ -57,7 +57,10 @@ export default function StaffDirectory() {
               >
                 <div className="owlet-staff-photo">
                   {member.photoUrl ? (
-                    <img src={member.photoUrl} alt={member.displayName || member.username} />
+                    <img 
+                      src={member.photoUrl} 
+                      alt={member.photoAlt || member.displayName || member.username} 
+                    />
                   ) : (
                     <div className="owlet-staff-photo-placeholder">🦉</div>
                   )}

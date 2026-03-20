@@ -37,6 +37,9 @@ export class User {
   @Column({ nullable: true })
   photoUrl: string;
 
+  @Column({ nullable: true })
+  photoAlt: string;
+
   @Column({ type: 'jsonb', nullable: true })
   customFields: Record<string, string>;
 

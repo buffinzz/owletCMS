@@ -21,6 +21,12 @@ export class Collection {
   @Column({ nullable: true })
   coverUrl: string;
 
+  @Column({ nullable: true })
+  coverAlt: string;
+
+  @Column({ nullable: true })
+  coverTitle: string;
+
   @Column({ default: true })
   isVisible: boolean;
 
@@ -36,4 +42,5 @@ export class Collection {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
 }

@@ -10,6 +10,7 @@ interface CatalogItem {
   isbn?: string;
   summary?: string;
   coverUrl?: string;
+  coverAlt?: string;
   publishedDate?: string;
   subjects?: string[];
   format?: string;
@@ -35,6 +36,8 @@ interface Collection {
   slug: string;
   description?: string;
   coverUrl?: string;
+  coverAlt?: string;
+  coverTitle?: string;
   isVisible: boolean;
   createdAt: string;
   items?: CatalogItem[];
@@ -425,7 +428,12 @@ export default function CatalogTab() {
 
           <ImageUpload
             currentUrl={editingItem?.coverUrl || ''}
-            onUpload={url => setEditingItem(prev => prev ? { ...prev, coverUrl: url } : prev)}
+            currentAlt={editingItem?.coverAlt || ''}
+            onUpload={(url, alt) => setEditingItem(prev => prev ? { 
+              ...prev, 
+              coverUrl: url,
+              coverAlt: alt || '',
+            } : prev)}
             label="Cover Image"
             size="small"
           />
@@ -577,6 +585,20 @@ export default function CatalogTab() {
             <input value={editingCollection.coverUrl || ''}
               onChange={e => setEditingCollection({ ...editingCollection, coverUrl: e.target.value })}
               placeholder="https://..." />
+              <ImageUpload
+                currentUrl={editingCollection?.coverUrl || ''}
+                currentAlt={editingCollection?.coverAlt || ''}
+                currentTitle={editingCollection?.coverTitle || ''}
+                onUpload={(url, alt, title) => setEditingCollection(prev => prev ? {
+                  ...prev,
+                  coverUrl: url,
+                  coverAlt: alt || '',
+                  coverTitle: title || '',
+                } : prev)}
+                label="Cover Image"
+                size="medium"
+                showTitle
+              />
           </div>
 
           {/* Items management */}

@@ -27,6 +27,7 @@ const emptyUserForm = {
   location: '',
   bio: '',
   photoUrl: '',
+  photoAlt: '',
   role: 'viewer',
   emergencyContact: '',
   notes: '',
@@ -225,7 +226,12 @@ export default function UsersTab() {
           </p>
           <ImageUpload
             currentUrl={form.photoUrl}
-            onUpload={url => setForm({ ...form, photoUrl: url })}
+            currentAlt={form.photoAlt}
+            onUpload={(url, alt) => setForm({ 
+              ...form, 
+              photoUrl: url,
+              photoAlt: alt || '',
+            })}
             label="Profile Photo"
             size="medium"
           />

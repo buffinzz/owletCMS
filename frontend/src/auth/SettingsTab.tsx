@@ -16,15 +16,16 @@ export default function SettingsTab() {
   const { user } = useAuth();
   const { settings, refresh } = useSettings();
   const [form, setForm] = useState({
-    library_name: '',
-    library_tagline: '',
-    library_email: '',
-    library_phone: '',
-    library_address: '',
-    library_city: '',
-    library_logo_url: '',
-    theme_primary_colour: '#3d1f6e',
-  });
+  library_name: '',
+  library_tagline: '',
+  library_email: '',
+  library_phone: '',
+  library_address: '',
+  library_city: '',
+  library_logo_url: '',
+  library_logo_alt: '',
+  theme_primary_colour: '#3d1f6e',
+});
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -153,6 +154,14 @@ export default function SettingsTab() {
           value={form.library_logo_url}
           onChange={e => setForm({ ...form, library_logo_url: e.target.value })}
           placeholder="https://your-library.org/logo.png"
+        />
+      </div>
+      <div className="owlet-field">
+        <label>Logo Alt Text</label>
+        <input
+          value={form.library_logo_alt || ''}
+          onChange={e => setForm({ ...form, library_logo_alt: e.target.value })}
+          placeholder="Franklin County Public Library logo"
         />
       </div>
 

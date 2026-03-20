@@ -21,6 +21,9 @@ export class CollectionItem {
   coverUrl: string;
 
   @Column({ nullable: true })
+  coverAlt: string;
+
+  @Column({ nullable: true })
   publishedDate: string;
 
   @Column({ nullable: true })

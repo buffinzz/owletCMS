@@ -16,12 +16,13 @@ export default function SiteHeader({ showAdminLink, showBackToSite, extraNav }: 
   const logoSrc = settings.library_logo_url || owletLogo;
   const siteName = settings.library_name || 'Owlet';
   const tagline = settings.library_tagline || 'Knowledge that connects';
+  const logoAlt = settings.library_logo_alt || siteName;
 
   return (
     <header className="owlet-header">
       <div className="owlet-header-inner">
         <Link to="/" className="owlet-logo">
-          <img src={logoSrc} alt={siteName} className="owlet-logo-icon" />
+          <img src={logoSrc} alt={logoAlt} className="owlet-logo-icon" />
           <span className="owlet-logo-text">
             <span className="owlet-logo-name">{siteName}</span>
             <span className="owlet-logo-tagline">{tagline}</span>

@@ -8,10 +8,12 @@ interface Event {
   slug: string;
   description: string;
   startDate: string;
-  endDate?: string;
   location?: string;
   audience?: string;
   isPublished: boolean;
+  imageUrl?: string;
+  imageAlt?: string;
+  imageTitle?: string;
 }
 
 function formatDate(dateStr: string) {
@@ -66,9 +68,13 @@ export default function EventsView() {
                 </div>
                 {event.imageUrl && (
                   <div className="owlet-event-image">
-                    <img src={event.imageUrl} alt={event.title} />
+                    <img 
+                      src={event.imageUrl} 
+                      alt={event.imageAlt || event.title} 
+                      title={event.imageTitle || undefined}
+                    />
                   </div>
-                  )}
+                )}
                 <div className="owlet-event-body">
                   <h3>{event.title}</h3>
                   <p>{event.description}</p>

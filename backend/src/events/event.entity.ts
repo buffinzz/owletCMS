@@ -37,4 +37,10 @@ export class Event {
 
   @Column({ nullable: true })
   imageUrl: string;
+
+  @Column({ nullable: true })
+  imageAlt: string;
+
+  @Column({ nullable: true })
+  imageTitle: string;
 }

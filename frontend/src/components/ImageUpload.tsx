@@ -14,19 +14,29 @@ interface MediaItem {
 
 interface ImageUploadProps {
   currentUrl?: string;
-  onUpload: (url: string) => void;
+  currentAlt?: string;
+  currentTitle?: string;
+  onUpload: (url: string, alt?: string, title?: string) => void;
   label?: string;
   size?: 'small' | 'medium' | 'large';
+  showAlt?: boolean;
+  showTitle?: boolean;
 }
 
 export default function ImageUpload({
   currentUrl,
+  currentAlt,
+  currentTitle,
   onUpload,
   label = 'Photo',
   size = 'medium',
+  showAlt = true,
+  showTitle = false,
 }: ImageUploadProps) {
   const { user } = useAuth();
   const [preview, setPreview] = useState<string | null>(currentUrl || null);
+  const [alt, setAlt] = useState(currentAlt || '');
+  const [title, setTitle] = useState(currentTitle || '');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [showPicker, setShowPicker] = useState(false);
@@ -54,7 +64,7 @@ export default function ImageUpload({
         },
       });
       setPreview(res.data.url);
-      onUpload(res.data.url);
+      onUpload(res.data.url, alt, title);
     } catch {
       setError('Upload failed. Please try again.');
       setPreview(currentUrl || null);
@@ -65,8 +75,16 @@ export default function ImageUpload({
 
   const handlePickerSelect = (url: string, item: MediaItem) => {
     setPreview(url);
-    onUpload(url);
+    // Pre-fill alt from media library if available and alt is empty
+    if (item.alt && !alt) setAlt(item.alt);
+    onUpload(url, alt || item.alt, title);
     setShowPicker(false);
+  };
+
+  const handleMetaChange = (newAlt: string, newTitle: string) => {
+    setAlt(newAlt);
+    setTitle(newTitle);
+    if (preview) onUpload(preview, newAlt, newTitle);
   };
 
   return (
@@ -80,7 +98,7 @@ export default function ImageUpload({
             onClick={() => inputRef.current?.click()}
           >
             {preview ? (
-              <img src={preview} alt="Preview" />
+              <img src={preview} alt={alt || 'Preview'} />
             ) : (
               <div className="owlet-image-placeholder"><span>📷</span></div>
             )}
@@ -114,7 +132,12 @@ export default function ImageUpload({
               <button
                 type="button"
                 className="owlet-btn-action owlet-btn-delete"
-                onClick={() => { setPreview(null); onUpload(''); }}
+                onClick={() => {
+                  setPreview(null);
+                  setAlt('');
+                  setTitle('');
+                  onUpload('', '', '');
+                }}
                 disabled={uploading}
               >
                 🗑️ Remove
@@ -123,6 +146,33 @@ export default function ImageUpload({
             <p className="owlet-image-hint">Max 20MB</p>
           </div>
         </div>
+
+        {/* Alt and title fields — only show when an image is selected */}
+        {preview && (showAlt || showTitle) && (
+          <div className="owlet-image-meta">
+            {showAlt && (
+              <div className="owlet-field">
+                <label>Alt Text <span style={{ fontWeight: 300, textTransform: 'none', fontSize: '0.75rem' }}>(describes the image for accessibility)</span></label>
+                <input
+                  value={alt}
+                  onChange={e => handleMetaChange(e.target.value, title)}
+                  placeholder="A photo of the library entrance..."
+                />
+              </div>
+            )}
+            {showTitle && (
+              <div className="owlet-field">
+                <label>Title / Caption</label>
+                <input
+                  value={title}
+                  onChange={e => handleMetaChange(alt, e.target.value)}
+                  placeholder="Optional caption or title..."
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {error && <p className="owlet-login-error">{error}</p>}
         <input
           ref={inputRef}

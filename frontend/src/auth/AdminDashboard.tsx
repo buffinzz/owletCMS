@@ -21,6 +21,9 @@ interface Event {
   location?: string;
   audience?: string;
   isPublished: boolean;
+  imageUrl?: string;
+  imageAlt?: string;
+  imageTitle?: string;
 }
 
 interface Page {
@@ -32,7 +35,9 @@ interface Page {
 
 const emptyEvent = {
   title: '', slug: '', description: '',
-  startDate: '', location: '', audience: '', isPublished: true, imageUrl: '',
+  startDate: '', location: '', audience: '',
+  isPublished: true, imageUrl: '',
+  imageAlt: '', imageTitle: '',
 };
 
 const emptyPage = { title: '', slug: '', content: '' };
@@ -90,19 +95,22 @@ export default function AdminDashboard() {
   };
 
   const handleEditEvent = (event: Event) => {
-    setEventForm({
-      title: event.title,
-      slug: event.slug,
-      description: event.description,
-      startDate: event.startDate.slice(0, 16),
-      location: event.location || '',
-      audience: event.audience || '',
-      isPublished: event.isPublished,
-    });
-    setEditingId(event.id);
-    setMode('edit');
-    setTab('events');
-  };
+  setEventForm({
+    title: event.title,
+    slug: event.slug,
+    description: event.description,
+    startDate: event.startDate.slice(0, 16),
+    location: event.location || '',
+    audience: event.audience || '',
+    isPublished: event.isPublished,
+    imageUrl: event.imageUrl || '',
+    imageAlt: event.imageAlt || '',
+    imageTitle: event.imageTitle || '',
+  });
+  setEditingId(event.id);
+  setMode('edit');
+  setTab('events');
+};
 
   const handleDeleteEvent = async (id: number) => {
     if (!confirm('Delete this event? This cannot be undone.')) return;
@@ -288,9 +296,17 @@ export default function AdminDashboard() {
             <textarea value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} placeholder="Tell people what to expect..." rows={4} required />
             <ImageUpload
               currentUrl={eventForm.imageUrl}
-              onUpload={url => setEventForm({ ...eventForm, imageUrl: url })}
+              currentAlt={eventForm.imageAlt}
+              currentTitle={eventForm.imageTitle}
+              onUpload={(url, alt, title) => setEventForm({ 
+                ...eventForm, 
+                imageUrl: url, 
+                imageAlt: alt || '', 
+                imageTitle: title || '' 
+              })}
               label="Event Image / Flyer"
               size="large"
+              showTitle
             />
           </div>
           <div className="owlet-field-row">
