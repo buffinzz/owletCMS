@@ -2027,3 +2027,137 @@ body {
 .owlet-collection-search-results .owlet-collection-item-row:last-child {
   border-bottom: none;
 }
+/* ── FEATURED COLLECTIONS GRID ── */
+.owlet-collections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.owlet-collection-card {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--cream-dark);
+  box-shadow: 0 2px 12px rgba(61, 31, 110, 0.06);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.owlet-collection-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(61, 31, 110, 0.12);
+}
+
+.owlet-collection-card-cover {
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid));
+  flex-shrink: 0;
+}
+
+.owlet-collection-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.owlet-collection-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.owlet-collection-card-info {
+  padding: 1.25rem;
+  flex: 1;
+}
+
+.owlet-collection-card-info h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.owlet-collection-card-info p {
+  color: var(--ink-light);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  font-weight: 300;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── COLLECTION DETAIL HERO ── */
+.owlet-collection-hero {
+  background: linear-gradient(135deg, var(--purple-deep), var(--purple-mid));
+  padding: 3rem 2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.owlet-collection-hero-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+}
+
+.owlet-collection-hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.owlet-collection-hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.owlet-collection-back {
+  display: inline-block;
+  color: var(--purple-light);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.owlet-collection-back:hover {
+  color: var(--white);
+}
+
+.owlet-collection-hero-inner h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--white);
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  margin-bottom: 0.5rem;
+}
+
+.owlet-collection-hero-inner p {
+  color: var(--purple-light);
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+.owlet-collection-count {
+  margin-top: 0.75rem !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amber-light) !important;
+}

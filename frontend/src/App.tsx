@@ -9,6 +9,7 @@ import StaffDirectory from './staff/StaffDirectory';
 import StaffProfile from './staff/StaffProfile';
 import StaffLayout from './layouts/StaffLayout';
 import SetupWizard from './setup/SetupWizard';
+import CollectionDetail from './catalog/CollectionDetail';
 
 function App() {
   const { isAuthenticated, canEdit } = useAuth();
@@ -53,6 +54,7 @@ function App() {
           : <Navigate to="/admin/login" />
       } />
       <Route path="/setup" element={<Navigate to="/" />} />
+      <Route path="/collections/:slug" element={<StaffLayout><CollectionDetail /></StaffLayout>} />
     </Routes>
   );
 }

@@ -4,6 +4,7 @@ import EventsView from '../events/EventsView';
 import owletLogo from '../assets/owlet-logo.png';
 import { useSettings } from '../settings/SettingsContext';
 import NewArrivals from '../catalog/NewArrivals';
+import FeaturedCollections from '../catalog/FeaturedCollections';
 
 export default function PublicLayout() {
   const { settings } = useSettings();
@@ -51,6 +52,7 @@ export default function PublicLayout() {
 
       <main className="owlet-main">
         <EventsView />
+        <FeaturedCollections />
         <NewArrivals count={20} />
         <PageView />
       </main>
