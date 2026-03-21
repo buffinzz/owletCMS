@@ -8,8 +8,11 @@ import ImageUpload from '../components/ImageUpload';
 import MediaLibrary from '../media/MediaLibrary';
 import CatalogTab from '../catalog/CatalogTab';
 import DigitalResourcesTab from '../digital-resources/DigitalResourcesTab';
+import { Suspense } from 'react';
+import { usePluginTabs } from '../plugins/usePlugins';
+import { getPluginTabComponent } from '../plugins/PluginTabRegistry';
 
-type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | 'catalog' | 'digital-resources';
+type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | string;
 type Mode = 'list' | 'create' | 'edit';
 
 interface Event {
@@ -60,6 +63,8 @@ export default function AdminDashboard() {
 
   const authHeader = { headers: { Authorization: `Bearer ${user?.token}` } };
   const isAdmin = user?.role === 'admin';
+
+  const { tabs: pluginTabs } = usePluginTabs(user?.token || '');
 
   useEffect(() => {
     fetchEvents();
@@ -195,6 +200,7 @@ export default function AdminDashboard() {
       {error && <div className="owlet-alert owlet-alert-error">{error}</div>}
 
       <div className="owlet-admin-tabs">
+        {/* Core tabs */}
         <button className={`owlet-tab ${tab === 'events' ? 'active' : ''}`}
           onClick={() => { setTab('events'); setMode('list'); setEditingId(null); }}>
           📅 Events
@@ -209,25 +215,32 @@ export default function AdminDashboard() {
             👥 Users
           </button>
         )}
+        
+        <button className={`owlet-tab ${tab === 'media' ? 'active' : ''}`}
+          onClick={() => { setTab('media'); setMode('list'); }}>
+          📁 Media
+        </button>
+
+        {/* Plugin tabs — dynamic! */}
+        {pluginTabs.map(pluginTab => (
+          <button
+            key={pluginTab.id}
+            className={`owlet-tab ${tab === pluginTab.id ? 'active' : ''}`}
+            onClick={() => { setTab(pluginTab.id); setMode('list'); }}
+          >
+            {pluginTab.label}
+          </button>
+        ))}
+        
         {isAdmin && (
           <button className={`owlet-tab ${tab === 'settings' ? 'active' : ''}`}
             onClick={() => { setTab('settings'); setMode('list'); }}>
             ⚙️ Settings
           </button>
         )}
-        <button className={`owlet-tab ${tab === 'media' ? 'active' : ''}`}
-          onClick={() => { setTab('media'); setMode('list'); }}>
-          📁 Media
-        </button>
-        <button className={`owlet-tab ${tab === 'catalog' ? 'active' : ''}`}
-          onClick={() => { setTab('catalog'); setMode('list'); }}>
-          📚 Catalog
-        </button>
-        <button className={`owlet-tab ${tab === 'digital-resources' ? 'active' : ''}`}
-          onClick={() => { setTab('digital-resources'); setMode('list'); }}>
-          💻 Resources
-        </button>
-        {tab !== 'users' && tab !== 'settings' && tab !== 'media' && tab !== 'catalog' && tab !== 'digital-resources' && (
+
+        {/* New button — hide for non-content tabs */}
+        {!['users', 'settings', 'media', ...pluginTabs.map(t => t.id)].includes(tab) && (
           <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
             + New {tab === 'events' ? 'Event' : 'Page'}
           </button>
@@ -238,8 +251,23 @@ export default function AdminDashboard() {
       {tab === 'users' && <UsersTab />}
       {tab === 'settings' && <SettingsTab />}
       {tab === 'media' && <MediaLibrary />}
-      {tab === 'catalog' && <CatalogTab />}
-      {tab === 'digital-resources' && <DigitalResourcesTab />}
+      {/* Plugin tab content — dynamic! */}
+      {pluginTabs.map(pluginTab => {
+        if (tab !== pluginTab.id) return null;
+        const TabComponent = getPluginTabComponent(pluginTab.id);
+        if (!TabComponent) return (
+          <div key={pluginTab.id} className="owlet-empty">
+            <p>Component for {pluginTab.label} not registered in frontend.</p>
+          </div>
+        );
+        return (
+          <Suspense key={pluginTab.id} fallback={
+            <div className="owlet-loading"><span /><span /><span /></div>
+          }>
+            <TabComponent />
+          </Suspense>
+        );
+      })}
       
       {/* ── LIST: Events ── */}
       {mode === 'list' && tab === 'events' && (

@@ -1,0 +1,19 @@
+{
+  "name": "owlet-plugin-catalog",
+  "version": "0.1.0",
+  "displayName": "Catalog",
+  "description": "Collection management with Evergreen integration and native cataloging",
+  "author": "Owlet Core Team",
+  "owletVersion": ">=0.1.0",
+  "permissions": ["catalog"],
+  "adminTabs": [
+    { "id": "catalog", "label": "📚 Catalog", "roles": ["admin", "editor", "staff"] }
+  ],
+  "publicRoutes": ["/collections/:slug"],
+  "settings": [
+    { "key": "catalog_provider", "default": "none", "label": "Catalog provider", "type": "string" },
+    { "key": "evergreen_url", "default": "", "label": "Evergreen URL", "type": "string" },
+    { "key": "evergreen_library_code", "default": "", "label": "Evergreen library code", "type": "string" },
+    { "key": "catalog_sync_count", "default": "20", "label": "Items to sync per run", "type": "number" }
+  ]
+}

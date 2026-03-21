@@ -2287,3 +2287,39 @@ body {
   transform: translateX(3px);
   color: var(--purple-mid);
 }
+/* ── PLUGIN LIST ── */
+.owlet-plugin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.owlet-plugin-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+}
+
+.owlet-plugin-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.owlet-plugin-info h4 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--purple-deep);
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.owlet-plugin-info p {
+  font-size: 0.8rem;
+  color: var(--ink-light);
+  font-weight: 300;
+  line-height: 1.4;
+}

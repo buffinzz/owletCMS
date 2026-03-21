@@ -1,0 +1,14 @@
+{
+  "name": "owlet-plugin-digital-resources",
+  "version": "0.1.0",
+  "displayName": "Digital Resources",
+  "description": "Curated links to databases, ebooks, and online tools",
+  "author": "Owlet Core Team",
+  "owletVersion": ">=0.1.0",
+  "permissions": [],
+  "adminTabs": [
+    { "id": "digital-resources", "label": "💻 Resources", "roles": ["admin", "editor"] }
+  ],
+  "publicRoutes": [],
+  "settings": []
+}

@@ -1,0 +1,28 @@
+import { lazy, ComponentType } from 'react';
+
+// Registry maps plugin tab IDs to their React components
+// When a new plugin is added, register its component here
+const tabComponents: Record<string, ComponentType> = {};
+
+// Built-in plugin tab registrations
+try {
+  const CatalogTab = lazy(() => import('../catalog/CatalogTab'));
+  tabComponents['catalog'] = CatalogTab;
+} catch { }
+
+try {
+  const DigitalResourcesTab = lazy(() => import('../digital-resources/DigitalResourcesTab'));
+  tabComponents['digital-resources'] = DigitalResourcesTab;
+} catch { }
+
+export function registerPluginTab(id: string, component: ComponentType) {
+  tabComponents[id] = component;
+}
+
+export function getPluginTabComponent(id: string): ComponentType | null {
+  return tabComponents[id] || null;
+}
+
+export function getRegisteredTabIds(): string[] {
+  return Object.keys(tabComponents);
+}
