@@ -170,12 +170,29 @@ These tools were chosen to make the project approachable for contributors and ea
 
 Owlet is in **early development**.
 
-The project is currently establishing:
+### 🏛️ Core Features *(always included)*
 
-* core architecture
-* foundational data models
-* development workflow
-* contributor guidelines
+- 🌐 **Public site** — dynamic library branding, theming, and logo
+- 🧭 **Editable navigation** — dropdown menus, nested items, mobile-friendly
+- 📄 **Pages & Events** — full content management with image uploads
+- 🗂️ **Collections** — curated groups linking any content type
+- 👥 **Staff Directory** — public profiles with private fields
+- 📁 **Media Library** — file management with OCR full-text search
+- ⚙️ **Settings & Setup Wizard** — guided first-run configuration
+- 🔐 **Role-based auth** — admin, editor, staff, viewer roles
+- 🧩 **Plugin system** — auto-discovery, enable/disable, community-extensible
+
+### 🔌 Plugins *(optional, toggle on/off)*
+
+- 📚 **Catalog** — Evergreen ILS integration with nightly sync and new arrivals shelf
+- 💻 **Digital Resources** — curated links to databases, ebooks, and online tools
+
+### 🗺️ Roadmap
+
+- [ ] 👤 **Patron accounts** — self-registration, patron portal, reading history
+- [ ] 🔄 **Circulation & Holds** — checkout tracking, returns, hold queue, email reminders
+- [ ] 📖 **Native cataloging** — built-in catalog for little free libraries and small collections
+- [ ] 🚀 **Deployment** — one-command install, managed hosting guidance
 
 Early contributors are welcome.
 
