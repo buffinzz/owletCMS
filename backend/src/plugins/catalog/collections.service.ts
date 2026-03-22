@@ -1,93 +1,75 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Collection } from './collection.entity';
+import { CollectionsService as CoreCollectionsService } from '../../collections/collections.service';
 import { CollectionItem } from './collection-item.entity';
+import { MemberEntityType } from '../../collections/collection-membership.entity';
 
 @Injectable()
 export class CollectionsService {
   constructor(
-    @InjectRepository(Collection)
-    private collectionsRepository: Repository<Collection>,
     @InjectRepository(CollectionItem)
     private itemsRepository: Repository<CollectionItem>,
+    private coreCollectionsService: CoreCollectionsService,
   ) {}
 
-  async findAll(): Promise<Collection[]> {
-    return this.collectionsRepository.find({
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  async findVisible(): Promise<Collection[]> {
-    return this.collectionsRepository.find({
-      where: { isVisible: true },
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  async findOne(id: number): Promise<Collection | null> {
-    return this.collectionsRepository.findOne({
-      where: { id },
-      relations: ['items'],
-    });
-  }
-
-  async findBySlug(slug: string): Promise<Collection | null> {
-    return this.collectionsRepository.findOne({
-      where: { slug },
-      relations: ['items'],
-    });
-  }
-
-  async create(data: Partial<Collection>): Promise<Collection> {
-    const collection = this.collectionsRepository.create(data);
-    return this.collectionsRepository.save(collection);
-  }
-
-  async update(id: number, data: Partial<Collection>): Promise<Collection | null> {
-    await this.collectionsRepository.update(id, data);
-    return this.collectionsRepository.findOneBy({ id });
-  }
-
-  async remove(id: number): Promise<void> {
-    await this.collectionsRepository.delete(id);
-  }
-
-  async addItem(collectionId: number, itemId: number): Promise<Collection | null> {
-    const collection = await this.collectionsRepository.findOne({
-      where: { id: collectionId },
-      relations: ['items'],
-    });
-    const item = await this.itemsRepository.findOneBy({ id: itemId });
-    if (!collection || !item) return null;
-    collection.items = [...(collection.items || []), item];
-    return this.collectionsRepository.save(collection);
-  }
-
-  async removeItem(collectionId: number, itemId: number): Promise<Collection | null> {
-    const collection = await this.collectionsRepository.findOne({
-      where: { id: collectionId },
-      relations: ['items'],
-    });
+  // Augments core collection with catalog items
+  async findOne(id: number) {
+    const collection = await this.coreCollectionsService.findOne(id);
     if (!collection) return null;
-    collection.items = collection.items.filter(i => i.id !== itemId);
-    return this.collectionsRepository.save(collection);
+
+    const memberships = await this.coreCollectionsService.getMemberships(id);
+    const catalogMemberships = memberships.filter(
+      m => m.entityType === MemberEntityType.CATALOG_ITEM
+    );
+
+    const items = await Promise.all(
+      catalogMemberships.map(m => this.itemsRepository.findOneBy({ id: m.entityId }))
+    );
+
+    return { ...collection, items: items.filter(Boolean) };
   }
 
-  async bulkToggleVisibility(ids: number[], isVisible: boolean): Promise<void> {
-    await this.collectionsRepository
-      .createQueryBuilder()
-      .update(Collection)
-      .set({ isVisible })
-      .whereInIds(ids)
-      .execute();
+  // Augments core collection with catalog items
+  async findBySlug(slug: string) {
+    const collection = await this.coreCollectionsService.findBySlug(slug);
+    if (!collection) return null;
+
+    const memberships = await this.coreCollectionsService.getMemberships(collection.id);
+    const catalogMemberships = memberships.filter(
+      m => m.entityType === MemberEntityType.CATALOG_ITEM
+    );
+
+    const items = await Promise.all(
+      catalogMemberships.map(m => this.itemsRepository.findOneBy({ id: m.entityId }))
+    );
+
+    return { ...collection, items: items.filter(Boolean) };
   }
-  async findByItem(itemId: number): Promise<Collection[]> {
-    return this.collectionsRepository
-      .createQueryBuilder('collection')
-      .innerJoin('collection.items', 'item')
-      .where('item.id = :itemId', { itemId })
-      .getMany();
+
+  // Which collections does this catalog item belong to?
+  async findByItem(itemId: number) {
+    return this.coreCollectionsService.getCollectionsByEntity(
+      MemberEntityType.CATALOG_ITEM,
+      itemId,
+    );
+  }
+
+  // Add a catalog item to a collection
+  async addItem(collectionId: number, itemId: number): Promise<void> {
+    await this.coreCollectionsService.addMember(
+      collectionId,
+      MemberEntityType.CATALOG_ITEM,
+      itemId,
+    );
+  }
+
+  // Remove a catalog item from a collection
+  async removeItem(collectionId: number, itemId: number): Promise<void> {
+    await this.coreCollectionsService.removeMember(
+      collectionId,
+      MemberEntityType.CATALOG_ITEM,
+      itemId,
+    );
   }
 }

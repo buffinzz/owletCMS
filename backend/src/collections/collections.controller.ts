@@ -1,15 +1,16 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { CollectionsService } from './collections.service';
 import { Collection } from './collection.entity';
-import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
-import { RolesGuard } from '../../auth/roles.guard';
-import { Roles } from '../../auth/roles.decorator';
+import { MemberEntityType } from './collection-membership.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('collections')
 export class CollectionsController {
   constructor(private readonly collectionsService: CollectionsService) {}
 
-  // ── Specific routes FIRST ──
+  // ── Specific routes first ──
   @Get('admin/all')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
@@ -24,25 +25,30 @@ export class CollectionsController {
     return this.collectionsService.bulkToggleVisibility(body.ids, body.isVisible);
   }
 
+  @Get('by-entity/:type/:entityId')
+  @UseGuards(JwtAuthGuard)
+  getByEntity(
+    @Param('type') type: MemberEntityType,
+    @Param('entityId') entityId: string,
+  ) {
+    return this.collectionsService.getCollectionsByEntity(type, +entityId);
+  }
+
   // ── Public ──
   @Get()
   findVisible() {
     return this.collectionsService.findVisible();
   }
 
-  // ── Parameterised routes LAST ──
+  // ── Parameterised routes last ──
   @Get('id/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
-  findOne(@Param('id') id: string) {
-    return this.collectionsService.findOne(+id);
-  }
-
-  @Get('by-item/:itemId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
-  findByItem(@Param('itemId') itemId: string) {
-    return this.collectionsService.findByItem(+itemId);
+  async findOne(@Param('id') id: string) {
+    const collection = await this.collectionsService.findOne(+id);
+    if (!collection) return null;
+    const memberships = await this.collectionsService.getMemberships(+id);
+    return { ...collection, memberships };
   }
 
   @Get(':slug')
@@ -57,18 +63,24 @@ export class CollectionsController {
     return this.collectionsService.create(data);
   }
 
-  @Post(':id/items/:itemId')
+  @Post(':id/members')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
-  addItem(@Param('id') id: string, @Param('itemId') itemId: string) {
-    return this.collectionsService.addItem(+id, +itemId);
+  addMember(
+    @Param('id') id: string,
+    @Body() body: { entityType: MemberEntityType; entityId: number },
+  ) {
+    return this.collectionsService.addMember(+id, body.entityType, body.entityId);
   }
 
-  @Delete(':id/items/:itemId')
+  @Delete(':id/members')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor')
-  removeItem(@Param('id') id: string, @Param('itemId') itemId: string) {
-    return this.collectionsService.removeItem(+id, +itemId);
+  removeMember(
+    @Param('id') id: string,
+    @Body() body: { entityType: MemberEntityType; entityId: number },
+  ) {
+    return this.collectionsService.removeMember(+id, body.entityType, body.entityId);
   }
 
   @Patch(':id')
@@ -83,5 +95,13 @@ export class CollectionsController {
   @Roles('admin')
   remove(@Param('id') id: string) {
     return this.collectionsService.remove(+id);
+  }
+
+  // Public — returns memberships for a collection (no auth required)
+  @Get(':slug/memberships')
+  async getMembershipsBySlug(@Param('slug') slug: string) {
+    const collection = await this.collectionsService.findBySlug(slug);
+    if (!collection) return [];
+    return this.collectionsService.getMemberships(collection.id);
   }
 }

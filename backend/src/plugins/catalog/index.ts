@@ -13,6 +13,6 @@ export default class CatalogPlugin implements OwletPlugin {
   }
 
   getEntities() {
-    return [CollectionItem, Collection, SyncLog];
+    return [CollectionItem, SyncLog];
   }
 }

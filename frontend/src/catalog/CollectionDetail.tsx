@@ -36,9 +36,33 @@ export default function CollectionDetail() {
 
   useEffect(() => {
     api.get(`/collections/${slug}`)
-      .then(res => {
+      .then(async res => {
         if (!res.data) return setNotFound(true);
-        setCollection(res.data);
+        const collection = res.data;
+
+        try {
+          // Use public memberships endpoint — no auth needed
+          const memberRes = await api.get(`/collections/${slug}/memberships`);
+          const memberships = memberRes.data || [];
+          const catalogIds = memberships
+            .filter((m: any) => m.entityType === 'catalog_item')
+            .map((m: any) => m.entityId);
+
+          if (catalogIds.length > 0) {
+            const items = await Promise.all(
+              catalogIds.map((id: number) =>
+                api.get(`/catalog/${id}`).then(r => r.data).catch(() => null)
+              )
+            );
+            collection.items = items.filter(Boolean);
+          } else {
+            collection.items = [];
+          }
+        } catch {
+          collection.items = [];
+        }
+
+        setCollection(collection);
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));

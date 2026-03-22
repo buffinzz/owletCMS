@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api';
@@ -9,7 +9,8 @@ const STEPS = [
   { id: 2, label: 'Library', icon: '🏛️' },
   { id: 3, label: 'Contact', icon: '📬' },
   { id: 4, label: 'Appearance', icon: '🎨' },
-  { id: 5, label: 'Admin', icon: '🔐' },
+  { id: 5, label: 'Plugins', icon: '🧩' },
+  { id: 6, label: 'Admin', icon: '🔐' },
 ];
 
 const THEME_COLOURS = [
@@ -21,12 +22,26 @@ const THEME_COLOURS = [
   { label: 'Amber Gold', value: '#b45309' },
 ];
 
+interface PluginManifest {
+  name: string;
+  displayName: string;
+  version: string;
+  description: string;
+}
+
 export default function SetupWizard() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Available plugins from API
+  const [availablePlugins, setAvailablePlugins] = useState<PluginManifest[]>([]);
+  const [pluginsLoading, setPluginsLoading] = useState(true);
+
+  // Plugin enabled state — keyed by plugin name, defaults to true
+  const [enabledPlugins, setEnabledPlugins] = useState<Record<string, boolean>>({});
 
   const [settings, setSettings] = useState({
     library_name: '',
@@ -45,19 +60,27 @@ export default function SetupWizard() {
     confirmPassword: '',
   });
 
+  // Fetch available plugins on mount
+  useEffect(() => {
+    api.get('/plugins')
+      .then(res => {
+        const plugins = res.data as PluginManifest[];
+        setAvailablePlugins(plugins);
+        // Default all discovered plugins to enabled
+        const defaults: Record<string, boolean> = {};
+        plugins.forEach(p => { defaults[p.name] = true; });
+        setEnabledPlugins(defaults);
+      })
+      .catch(() => setAvailablePlugins([]))
+      .finally(() => setPluginsLoading(false));
+  }, []);
+
   const updateSetting = (key: string, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const nextStep = () => {
-    setError('');
-    setStep(s => s + 1);
-  };
-
-  const prevStep = () => {
-    setError('');
-    setStep(s => s - 1);
-  };
+  const nextStep = () => { setError(''); setStep(s => s + 1); };
+  const prevStep = () => { setError(''); setStep(s => s - 1); };
 
   const handleSubmit = async () => {
     if (admin.password !== admin.confirmPassword) {
@@ -73,19 +96,27 @@ export default function SetupWizard() {
     setError('');
 
     try {
+      // Save library settings + complete setup
       await api.post('/settings/setup', {
         settings,
         adminUsername: admin.username,
         adminPassword: admin.password,
       });
 
-      // Auto-login the new admin
+      // Save plugin enabled states
+      for (const [pluginName, enabled] of Object.entries(enabledPlugins)) {
+        await api.patch('/settings', {
+          [`plugin_enabled_${pluginName}`]: enabled ? 'true' : 'false',
+        });
+      }
+
+      // Auto-login
       const res = await api.post('/auth/login', {
         username: admin.username,
         password: admin.password,
       });
       login(res.data.username, res.data.access_token, res.data.role);
-      setStep(6); // done screen
+      setStep(7); // done screen
     } catch {
       setError('Setup failed. Please try again.');
     } finally {
@@ -105,7 +136,7 @@ export default function SetupWizard() {
         </div>
 
         {/* Done screen */}
-        {step === 6 && (
+        {step === 7 && (
           <div className="owlet-setup-done">
             <div className="owlet-setup-done-icon">🎉</div>
             <h1>You're all set!</h1>
@@ -119,11 +150,11 @@ export default function SetupWizard() {
               onClick={() => window.location.href = '/admin'}
             >
               Go to Dashboard 🦉
-          </button>
+            </button>
           </div>
         )}
 
-        {step < 6 && (
+        {step < 7 && (
           <>
             {/* Progress bar */}
             <div className="owlet-setup-progress">
@@ -156,7 +187,7 @@ export default function SetupWizard() {
                 <h1>Welcome to Owlet</h1>
                 <p>
                   Let's get your library set up. This wizard will walk you through
-                  configuring your site, appearance, and admin account.
+                  configuring your site, appearance, plugins, and admin account.
                   It only takes a few minutes!
                 </p>
                 <p style={{ marginTop: '1rem' }}>
@@ -262,7 +293,7 @@ export default function SetupWizard() {
             {step === 4 && (
               <div className="owlet-setup-body">
                 <h1>🎨 Appearance</h1>
-                <p>Choose a theme colour and optionally upload your library's logo.</p>
+                <p>Choose a theme colour and optionally provide your library's logo URL.</p>
                 <div className="owlet-setup-fields">
                   <div className="owlet-field">
                     <label>Theme Colour</label>
@@ -300,8 +331,76 @@ export default function SetupWizard() {
               </div>
             )}
 
-            {/* ── Step 5: Admin Account ── */}
+            {/* ── Step 5: Plugins ── */}
             {step === 5 && (
+              <div className="owlet-setup-body">
+                <h1>🧩 Features & Plugins</h1>
+                <p>
+                  Choose which optional features your library needs.
+                  You can change these anytime from the admin settings.
+                </p>
+                <div className="owlet-setup-fields">
+                  {/* Core features — always on */}
+                  <div className="owlet-plugin-item" style={{ background: 'var(--cream-dark)' }}>
+                    <div className="owlet-plugin-info">
+                      <h4>
+                        ✅ Core Features
+                        <span className="owlet-media-meta"> (always included)</span>
+                      </h4>
+                      <p>Pages, Events, Media Library, Staff Directory, Collections</p>
+                    </div>
+                  </div>
+
+                  {/* Dynamic plugin list */}
+                  {pluginsLoading ? (
+                    <div className="owlet-loading"><span /><span /><span /></div>
+                  ) : availablePlugins.length === 0 ? (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--ink-light)' }}>
+                      No optional plugins found.
+                    </p>
+                  ) : availablePlugins.map(plugin => (
+                    <div key={plugin.name} className="owlet-plugin-item">
+                      <div className="owlet-plugin-info">
+                        <h4>
+                          {plugin.displayName}
+                          <span className="owlet-media-meta"> v{plugin.version}</span>
+                        </h4>
+                        <p>{plugin.description}</p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                        <input
+                          type="checkbox"
+                          id={`setup-plugin-${plugin.name}`}
+                          checked={enabledPlugins[plugin.name] ?? true}
+                          onChange={e => setEnabledPlugins(prev => ({
+                            ...prev,
+                            [plugin.name]: e.target.checked,
+                          }))}
+                        />
+                        <label
+                          htmlFor={`setup-plugin-${plugin.name}`}
+                          style={{
+                            fontSize: '0.9rem',
+                            cursor: 'pointer',
+                            fontFamily: 'Source Serif 4, serif',
+                            color: (enabledPlugins[plugin.name] ?? true) ? 'var(--teal)' : 'var(--ink-light)',
+                          }}
+                        >
+                          {(enabledPlugins[plugin.name] ?? true) ? 'Enabled' : 'Disabled'}
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="owlet-setup-actions">
+                  <button className="owlet-btn owlet-btn-ghost" onClick={prevStep}>Back</button>
+                  <button className="owlet-btn owlet-btn-primary" onClick={nextStep}>Continue →</button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Step 6: Admin Account ── */}
+            {step === 6 && (
               <div className="owlet-setup-body">
                 <h1>🔐 Admin Account</h1>
                 <p>Create your administrator account. Keep these credentials safe!</p>
