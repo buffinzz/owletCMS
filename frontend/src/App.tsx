@@ -1,15 +1,15 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './auth/AuthContext';
+import { useAuth } from './core/auth/AuthContext';
 import { useEffect, useState } from 'react';
 import api from './api';
-import PublicLayout from './layouts/PublicLayout';
-import AdminLayout from './layouts/AdminLayout';
-import LoginPage from './auth/LoginPage';
-import StaffDirectory from './staff/StaffDirectory';
-import StaffProfile from './staff/StaffProfile';
-import StaffLayout from './layouts/StaffLayout';
-import SetupWizard from './setup/SetupWizard';
-import CollectionDetail from './catalog/CollectionDetail';
+import PublicLayout from './core/layouts/PublicLayout';
+import AdminLayout from './core/layouts/AdminLayout';
+import LoginPage from './core/auth/LoginPage';
+import StaffDirectory from './core/staff/StaffDirectory';
+import StaffProfile from './core/staff/StaffProfile';
+import StaffLayout from './core/layouts/StaffLayout';
+import SetupWizard from './core/setup/SetupWizard';
+import CollectionDetail from "./core/collections/CollectionDetail";
 
 function App() {
   const { isAuthenticated, canEdit } = useAuth();
