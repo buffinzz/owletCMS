@@ -6,12 +6,12 @@ const tabComponents: Record<string, ComponentType> = {};
 
 // Built-in plugin tab registrations
 try {
-  const CatalogTab = lazy(() => import('../catalog/CatalogTab'));
+  const CatalogTab = lazy(() => import('./catalog/CatalogTab'));
   tabComponents['catalog'] = CatalogTab;
 } catch { }
 
 try {
-  const DigitalResourcesTab = lazy(() => import('../digital-resources/DigitalResourcesTab'));
+  const DigitalResourcesTab = lazy(() => import('./digital-resources/DigitalResourcesTab'));
   tabComponents['digital-resources'] = DigitalResourcesTab;
 } catch { }
 
