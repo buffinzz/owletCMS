@@ -2323,3 +2323,158 @@ body {
   font-weight: 300;
   line-height: 1.4;
 }
+/* ── NAV DROPDOWN ── */
+.owlet-nav-dropdown {
+  position: relative;
+}
+
+.owlet-nav-dropdown-trigger-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.owlet-nav-dropdown-link {
+  color: var(--purple-light);
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  font-family: 'Source Serif 4', serif;
+  transition: color 0.2s;
+}
+
+.owlet-nav-dropdown-link:hover {
+  color: var(--amber-light);
+}
+
+.owlet-nav-dropdown-label {
+  color: var(--purple-light);
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  font-family: 'Source Serif 4', serif;
+}
+
+.owlet-nav-caret {
+  font-size: 0.7rem;
+  color: var(--purple-light);
+  opacity: 0.7;
+}
+
+.owlet-nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  min-width: 180px;
+  z-index: 200;
+  animation: fadeIn 0.15s ease;
+  /* Bridge gap so mouse can reach menu */
+  margin-top: 0.5rem;
+}
+
+.owlet-nav-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid var(--white);
+}
+
+.owlet-nav-dropdown-item {
+  display: block;
+  padding: 0.5rem 0.875rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+  white-space: nowrap;
+  font-family: 'Source Serif 4', serif;
+}
+
+.owlet-nav-dropdown-item:hover {
+  background: var(--cream);
+  color: var(--purple-deep);
+}
+
+/* ── MOBILE NAV ── */
+.owlet-nav-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--purple-light);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.owlet-nav-hamburger:hover {
+  color: var(--amber-light);
+}
+
+.owlet-nav-mobile {
+  background: var(--purple-deep);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 0.75rem 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  animation: slideDown 0.2s ease;
+}
+
+.owlet-nav-mobile-item {
+  display: block;
+  color: var(--purple-light) !important;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  transition: color 0.2s;
+  font-family: 'Source Serif 4', serif;
+}
+
+.owlet-nav-mobile-item:hover {
+  color: var(--amber-light) !important;
+}
+
+.owlet-nav-mobile-child {
+  display: block;
+  color: var(--purple-light) !important;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.35rem 0 0.35rem 1.25rem;
+  transition: color 0.2s;
+  font-family: 'Source Serif 4', serif;
+  opacity: 1 !important;
+}
+
+.owlet-nav-mobile-child:hover {
+  color: var(--amber-light) !important;
+}
+
+@media (max-width: 768px) {
+  .owlet-nav {
+    display: none;
+  }
+  .owlet-nav-hamburger {
+    display: block;
+  }
+}
+
+@media (min-width: 769px) {
+  .owlet-nav-mobile {
+    display: none;
+  }
+  .owlet-nav-hamburger {
+    display: none !important;
+  }
+}

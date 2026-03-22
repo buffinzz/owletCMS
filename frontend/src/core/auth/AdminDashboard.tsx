@@ -12,6 +12,7 @@ import { Suspense } from 'react';
 import { usePluginTabs } from '../../plugins/usePlugins';
 import { getPluginTabComponent } from '../../plugins/PluginTabRegistry';
 import CollectionsTab from '../collections/CollectionsTab';
+import NavigationTab from '../navigation/NavigationTab';
 
 type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | 'collections' | string;
 type Mode = 'list' | 'create' | 'edit';
@@ -233,6 +234,12 @@ export default function AdminDashboard() {
           </button>
         ))}
         {isAdmin && (
+          <button className={`owlet-tab ${tab === 'navigation' ? 'active' : ''}`}
+          onClick={() => { setTab('navigation'); setMode('list'); }}>
+          🧭 Navigation
+        </button>
+        )}
+        {isAdmin && (
           <button className={`owlet-tab ${tab === 'users' ? 'active' : ''}`}
             onClick={() => { setTab('users'); setMode('list'); setEditingId(null); }}>
             👥 Users
@@ -246,7 +253,7 @@ export default function AdminDashboard() {
         )}
 
         {/* New button — hide for non-content tabs */}
-        {!['users', 'settings', 'media', 'collections', ...pluginTabs.map(t => t.id)].includes(tab) && (
+        {!['users', 'settings', 'media', 'collections', 'navigation', ...pluginTabs.map(t => t.id)].includes(tab) && (
           <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
             + New {tab === 'events' ? 'Event' : 'Page'}
           </button>
@@ -258,6 +265,7 @@ export default function AdminDashboard() {
       {tab === 'settings' && <SettingsTab />}
       {tab === 'media' && <MediaLibrary />}
       {tab === 'collections' && <CollectionsTab />}
+      {tab === 'navigation' && <NavigationTab />}
       {/* Plugin tab content — dynamic! */}
       {pluginTabs.map(pluginTab => {
         if (tab !== pluginTab.id) return null;

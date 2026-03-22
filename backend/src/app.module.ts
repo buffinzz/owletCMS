@@ -17,6 +17,8 @@ import { Setting } from './settings/setting.entity';
 import { CollectionsModule } from './collections/collections.module';
 import { Collection } from './collections/collection.entity';
 import { CollectionMembership } from './collections/collection-membership.entity';
+import { NavigationModule } from './navigation/navigation.module';
+import { NavItem } from './navigation/nav-item.entity';
 
 @Module({
   imports: [
@@ -29,7 +31,7 @@ import { CollectionMembership } from './collections/collection-membership.entity
       username: process.env.DB_USER || 'owlet',
       password: process.env.DB_PASS || 'owlet',
       database: process.env.DB_NAME || 'owlet_dev',
-      entities: [Page, Event, User, Media, Setting, Collection, CollectionMembership],
+      entities: [Page, Event, User, Media, Setting, Collection, CollectionMembership, NavItem],
       synchronize: true,
       autoLoadEntities: true, // ← plugins register their entities dynamically
     }),
@@ -41,6 +43,7 @@ import { CollectionMembership } from './collections/collection-membership.entity
     MediaModule,
     SettingsModule,
     CollectionsModule,
+    NavigationModule,
     // Plugin system — discovers and loads all plugins
     PluginModule.forRootAsync(),
   ],
