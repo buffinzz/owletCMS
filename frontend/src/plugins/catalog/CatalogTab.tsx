@@ -30,24 +30,8 @@ interface SyncLog {
   createdAt: string;
 }
 
-interface Collection {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  coverUrl?: string;
-  coverAlt?: string;
-  coverTitle?: string;
-  isVisible: boolean;
-  createdAt: string;
-}
-
-type CatalogView = 'items' | 'collections' | 'sync';
+type CatalogView = 'items' | 'sync';
 type ItemMode = 'list' | 'edit';
-
-const emptyCollection = {
-  name: '', slug: '', description: '', coverUrl: '', coverAlt: '', isVisible: true,
-};
 
 export default function CatalogTab() {
   const { user } = useAuth();
@@ -56,7 +40,6 @@ export default function CatalogTab() {
 
   const [view, setView] = useState<CatalogView>('items');
   const [items, setItems] = useState<CatalogItem[]>([]);
-  const [collections, setCollections] = useState<Collection[]>([]);
   const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -72,26 +55,16 @@ export default function CatalogTab() {
   // Item edit
   const [editMode, setEditMode] = useState<ItemMode>('list');
   const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
-  const [itemCollections, setItemCollections] = useState<Collection[]>([]);
-
-  // Collection edit
-  const [collectionMode, setCollectionMode] = useState<'list' | 'create' | 'edit'>('list');
-  const [editingCollection, setEditingCollection] = useState<Partial<Collection> | null>(null);
-  const [collectionItems, setCollectionItems] = useState<CatalogItem[]>([]);
-  const [collectionSearch, setCollectionSearch] = useState('');
-  const [collectionSearchResults, setCollectionSearchResults] = useState<CatalogItem[]>([]);
 
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => { fetchAll(); }, []);
-  useEffect(() => { fetchItems(); }, [search, sourceFilter, visibleFilter]);
-
-  const fetchAll = () => {
+  useEffect(() => {
     fetchItems();
-    fetchCollections();
     fetchSyncLogs();
-  };
+  }, []);
+
+  useEffect(() => { fetchItems(); }, [search, sourceFilter, visibleFilter]);
 
   const fetchItems = () => {
     setLoading(true);
@@ -102,12 +75,6 @@ export default function CatalogTab() {
     api.get(`/catalog?${params.toString()}`)
       .then(res => setItems(res.data))
       .finally(() => setLoading(false));
-  };
-
-  const fetchCollections = () => {
-    api.get('/collections/admin/all', authHeader)
-      .then(res => setCollections(res.data))
-      .catch(() => {});
   };
 
   const fetchSyncLogs = () => {
@@ -178,15 +145,9 @@ export default function CatalogTab() {
   };
 
   // ── Item edit ──
-  const handleEditItem = async (item: CatalogItem) => {
+  const handleEditItem = (item: CatalogItem) => {
     setEditingItem(item);
     setEditMode('edit');
-    try {
-      const res = await api.get(`/collections/by-entity/catalog_item/${item.id}`, authHeader);
-      setItemCollections(res.data);
-    } catch {
-      setItemCollections([]);
-    }
   };
 
   const handleSaveItem = async () => {
@@ -213,72 +174,6 @@ export default function CatalogTab() {
     }
   };
 
-  // ── Collections ──
-  const handleEditCollection = async (col: Collection) => {
-    setEditingCollection(col);
-    setCollectionMode('edit');
-    setCollectionItems([]);
-    setCollectionSearch('');
-    setCollectionSearchResults([]);
-    try {
-      const res = await api.get(`/collections/id/${col.id}`, authHeader);
-      const memberships = res.data.memberships || [];
-      const catalogIds = memberships
-        .filter((m: any) => m.entityType === 'catalog_item')
-        .map((m: any) => m.entityId);
-
-      if (catalogIds.length > 0) {
-        const itemResults = await Promise.all(
-          catalogIds.map((id: number) =>
-            api.get(`/catalog/${id}`).then(r => r.data).catch(() => null)
-          )
-        );
-        setCollectionItems(itemResults.filter(Boolean));
-      }
-    } catch {
-      setCollectionItems([]);
-    }
-  };
-
-  const handleCollectionSearch = async (q: string) => {
-    setCollectionSearch(q);
-    if (q.length < 2) return setCollectionSearchResults([]);
-    const res = await api.get(`/catalog?search=${encodeURIComponent(q)}`);
-    setCollectionSearchResults(res.data.slice(0, 8));
-  };
-
-  const handleSaveCollection = async () => {
-    if (!editingCollection) return;
-    try {
-      if ('id' in editingCollection && editingCollection.id) {
-        await api.patch(`/collections/${editingCollection.id}`, editingCollection, authHeader);
-        notify('Collection saved!');
-      } else {
-        await api.post('/collections', editingCollection, authHeader);
-        notify('Collection created!');
-      }
-      setCollectionMode('list');
-      setEditingCollection(null);
-      setCollectionItems([]);
-      setCollectionSearch('');
-      setCollectionSearchResults([]);
-      fetchCollections();
-    } catch {
-      notify('Failed to save collection.', true);
-    }
-  };
-
-  const handleDeleteCollection = async (id: number) => {
-    if (!confirm('Delete this collection?')) return;
-    try {
-      await api.delete(`/collections/${id}`, authHeader);
-      notify('Collection deleted.');
-      fetchCollections();
-    } catch {
-      notify('Failed to delete collection.', true);
-    }
-  };
-
   // Safety guard
   if (editMode === 'edit' && !editingItem) {
     setEditMode('list');
@@ -295,10 +190,6 @@ export default function CatalogTab() {
         <button className={`owlet-tab ${view === 'items' ? 'active' : ''}`}
           onClick={() => { setView('items'); setEditMode('list'); setEditingItem(null); }}>
           📚 Items ({items.length})
-        </button>
-        <button className={`owlet-tab ${view === 'collections' ? 'active' : ''}`}
-          onClick={() => { setView('collections'); setEditMode('list'); setEditingItem(null); setCollectionMode('list'); }}>
-          🗂️ Collections ({collections.length})
         </button>
         <button className={`owlet-tab ${view === 'sync' ? 'active' : ''}`}
           onClick={() => { setView('sync'); setEditMode('list'); setEditingItem(null); }}>
@@ -341,10 +232,16 @@ export default function CatalogTab() {
           {selected.size > 0 && (
             <div className="owlet-bulk-actions">
               <span>{selected.size} selected</span>
-              <button className="owlet-btn-action owlet-btn-edit" onClick={() => handleBulkVisibility(true)}>👁️ Show</button>
-              <button className="owlet-btn-action owlet-btn-edit" onClick={() => handleBulkVisibility(false)}>🚫 Hide</button>
-              {isAdmin && <button className="owlet-btn-action owlet-btn-delete" onClick={handleBulkDelete}>🗑️ Delete</button>}
-              <button className="owlet-btn-action owlet-btn-edit" onClick={() => setSelected(new Set())}>✕ Clear</button>
+              <button className="owlet-btn-action owlet-btn-edit"
+                onClick={() => handleBulkVisibility(true)}>👁️ Show</button>
+              <button className="owlet-btn-action owlet-btn-edit"
+                onClick={() => handleBulkVisibility(false)}>🚫 Hide</button>
+              {isAdmin && (
+                <button className="owlet-btn-action owlet-btn-delete"
+                  onClick={handleBulkDelete}>🗑️ Delete</button>
+              )}
+              <button className="owlet-btn-action owlet-btn-edit"
+                onClick={() => setSelected(new Set())}>✕ Clear</button>
             </div>
           )}
 
@@ -399,7 +296,8 @@ export default function CatalogTab() {
 
       {/* ── ITEM EDIT FORM ── */}
       {view === 'items' && editMode === 'edit' && editingItem !== null && (
-        <form className="owlet-admin-form" onSubmit={e => { e.preventDefault(); handleSaveItem(); }}>
+        <form className="owlet-admin-form"
+          onSubmit={e => { e.preventDefault(); handleSaveItem(); }}>
           <h3 className="owlet-form-title">✏️ Edit Item</h3>
           <div className="owlet-field-row">
             <div className="owlet-field">
@@ -443,7 +341,9 @@ export default function CatalogTab() {
           <ImageUpload
             currentUrl={editingItem?.coverUrl || ''}
             currentAlt={editingItem?.coverAlt || ''}
-            onUpload={(url, alt) => setEditingItem(prev => prev ? { ...prev, coverUrl: url, coverAlt: alt || '' } : prev)}
+            onUpload={(url, alt) => setEditingItem(prev =>
+              prev ? { ...prev, coverUrl: url, coverAlt: alt || '' } : prev
+            )}
             label="Cover Image"
             size="small"
           />
@@ -452,7 +352,9 @@ export default function CatalogTab() {
             <div className="owlet-field">
               <label>Catalog Link</label>
               <input value={editingItem?.externalUrl || ''}
-                onChange={e => setEditingItem(prev => prev ? { ...prev, externalUrl: e.target.value } : prev)}
+                onChange={e => setEditingItem(prev =>
+                  prev ? { ...prev, externalUrl: e.target.value } : prev
+                )}
                 placeholder="https://catalog.library.org/record/12345" />
             </div>
           )}
@@ -460,55 +362,10 @@ export default function CatalogTab() {
           <div className="owlet-field">
             <label>Summary</label>
             <textarea value={editingItem?.summary || ''}
-              onChange={e => setEditingItem(prev => prev ? { ...prev, summary: e.target.value } : prev)}
+              onChange={e => setEditingItem(prev =>
+                prev ? { ...prev, summary: e.target.value } : prev
+              )}
               rows={4} />
-          </div>
-
-          {/* Collections membership */}
-          <div className="owlet-field">
-            <label>Featured Collections</label>
-            <div className="owlet-collection-picker">
-              {collections.length === 0
-                ? <p style={{ fontSize: '0.85rem', color: 'var(--ink-light)' }}>No collections yet.</p>
-                : collections.map(col => {
-                  const isMember = itemCollections.some(c => c.id === col.id);
-                  return (
-                    <div key={col.id} className="owlet-collection-pick-item">
-                      <input
-                        type="checkbox"
-                        id={`col-${col.id}`}
-                        checked={isMember}
-                        onChange={async () => {
-                          if (isMember) {
-                            await api.delete(`/collections/${col.id}/members`, {
-                              ...authHeader,
-                              data: {
-                                entityType: 'catalog_item',
-                                entityId: editingItem?.id,
-                              },
-                            });
-                          } else {
-                            await api.post(`/collections/${col.id}/members`, {
-                              entityType: 'catalog_item',
-                              entityId: editingItem?.id,
-                            }, authHeader);
-                          }
-                          const res = await api.get(
-                            `/collections/by-entity/catalog_item/${editingItem?.id}`,
-                            authHeader
-                          );
-                          setItemCollections(res.data);
-                        }}
-                      />
-                      <label htmlFor={`col-${col.id}`}
-                        style={{ fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'Source Serif 4, serif' }}>
-                        {col.name}
-                      </label>
-                    </div>
-                  );
-                })
-              }
-            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
@@ -516,7 +373,9 @@ export default function CatalogTab() {
               type="checkbox"
               id="itemIsVisible"
               checked={editingItem?.isVisible ?? true}
-              onChange={e => setEditingItem(prev => prev ? { ...prev, isVisible: e.target.checked } : prev)}
+              onChange={e => setEditingItem(prev =>
+                prev ? { ...prev, isVisible: e.target.checked } : prev
+              )}
             />
             <label htmlFor="itemIsVisible"
               style={{ fontSize: '0.9rem', color: 'var(--ink)', cursor: 'pointer', fontFamily: 'Source Serif 4, serif' }}>
@@ -536,183 +395,20 @@ export default function CatalogTab() {
         </form>
       )}
 
-      {/* ── COLLECTIONS LIST ── */}
-      {view === 'collections' && collectionMode === 'list' && (
-        <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-            <button className="owlet-btn owlet-btn-primary owlet-btn-new"
-              onClick={() => { setEditingCollection(emptyCollection); setCollectionItems([]); setCollectionMode('create'); }}>
-              + New Collection
-            </button>
-          </div>
-          <div className="owlet-admin-list">
-            {collections.length === 0
-              ? <div className="owlet-empty"><p>No collections yet.</p></div>
-              : collections.map(col => (
-                <div key={col.id} className="owlet-admin-item">
-                  <div className="owlet-admin-item-info" style={{ flex: 1, minWidth: 0 }}>
-                    <h3>
-                      {col.name}
-                      {!col.isVisible && <span className="owlet-catalog-hidden-badge">hidden</span>}
-                    </h3>
-                    <p>/{col.slug}{col.description && ` · ${col.description}`}</p>
-                  </div>
-                  <div className="owlet-admin-item-actions">
-                    <button className="owlet-btn-action owlet-btn-edit"
-                      onClick={() => handleEditCollection(col)}>
-                      ✏️ Edit
-                    </button>
-                    {isAdmin && (
-                      <button className="owlet-btn-action owlet-btn-delete"
-                        onClick={() => handleDeleteCollection(col.id)}>
-                        🗑️ Delete
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
-            }
-          </div>
-        </>
-      )}
-
-      {/* ── COLLECTION FORM ── */}
-      {view === 'collections' && (collectionMode === 'create' || collectionMode === 'edit') && editingCollection && (
-        <form className="owlet-admin-form" onSubmit={e => { e.preventDefault(); handleSaveCollection(); }}>
-          <h3 className="owlet-form-title">
-            {collectionMode === 'edit' ? '✏️ Edit Collection' : '🗂️ New Collection'}
-          </h3>
-          <div className="owlet-field-row">
-            <div className="owlet-field">
-              <label>Name</label>
-              <input value={editingCollection.name || ''}
-                onChange={e => setEditingCollection({ ...editingCollection, name: e.target.value })}
-                placeholder="Summer Reading 2026" required />
-            </div>
-            <div className="owlet-field">
-              <label>Slug</label>
-              <input value={editingCollection.slug || ''}
-                onChange={e => setEditingCollection({ ...editingCollection, slug: e.target.value })}
-                placeholder="summer-reading-2026" required />
-            </div>
-          </div>
-          <div className="owlet-field">
-            <label>Description</label>
-            <textarea value={editingCollection.description || ''}
-              onChange={e => setEditingCollection({ ...editingCollection, description: e.target.value })}
-              rows={3} placeholder="A curated collection of..." />
-          </div>
-
-          <ImageUpload
-            currentUrl={editingCollection.coverUrl || ''}
-            currentAlt={editingCollection.coverAlt || ''}
-            onUpload={(url, alt) => setEditingCollection({ ...editingCollection, coverUrl: url, coverAlt: alt || '' })}
-            label="Cover Image"
-            size="medium"
-          />
-
-          {/* Items management — only in edit mode */}
-          {collectionMode === 'edit' && 'id' in editingCollection && (
-            <div className="owlet-field">
-              <label>Items in this Collection</label>
-              {collectionItems.length > 0 && (
-                <div className="owlet-collection-items-list">
-                  {collectionItems.map(item => (
-                    <div key={item.id} className="owlet-collection-item-row">
-                      <span>{item.title}{item.author && ` — ${item.author}`}</span>
-                      <button
-                        type="button"
-                        className="owlet-btn-action owlet-btn-delete"
-                        onClick={async () => {
-                          await api.delete(
-                            `/collections/${(editingCollection as Collection).id}/members`,
-                            { ...authHeader, data: { entityType: 'catalog_item', entityId: item.id } }
-                          );
-                          setCollectionItems(prev => prev.filter(i => i.id !== item.id));
-                        }}
-                      >✕ Remove</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <input
-                className="owlet-catalog-search"
-                style={{ marginTop: '0.75rem' }}
-                placeholder="Search to add items..."
-                value={collectionSearch}
-                onChange={e => handleCollectionSearch(e.target.value)}
-              />
-              {collectionSearchResults.length > 0 && (
-                <div className="owlet-collection-search-results">
-                  {collectionSearchResults.map(item => {
-                    const already = collectionItems.some(i => i.id === item.id);
-                    return (
-                      <div key={item.id} className="owlet-collection-item-row">
-                        <span>{item.title}{item.author && ` — ${item.author}`}</span>
-                        <button
-                          type="button"
-                          className="owlet-btn-action owlet-btn-edit"
-                          disabled={already}
-                          onClick={async () => {
-                            if (already) return;
-                            await api.post(
-                              `/collections/${(editingCollection as Collection).id}/members`,
-                              { entityType: 'catalog_item', entityId: item.id },
-                              authHeader
-                            );
-                            setCollectionItems(prev => [...prev, item]);
-                          }}
-                        >{already ? '✓ Added' : '+ Add'}</button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <input
-              type="checkbox"
-              id="collectionIsVisible"
-              checked={editingCollection.isVisible ?? true}
-              onChange={e => setEditingCollection({ ...editingCollection, isVisible: e.target.checked })}
-            />
-            <label htmlFor="collectionIsVisible"
-              style={{ fontSize: '0.9rem', color: 'var(--ink)', cursor: 'pointer', fontFamily: 'Source Serif 4, serif' }}>
-              Visible on public site
-            </label>
-          </div>
-
-          <div className="owlet-form-actions">
-            <button type="submit" className="owlet-btn owlet-btn-primary" style={{ width: 'auto' }}>
-              {collectionMode === 'edit' ? 'Save Changes' : 'Create Collection'} 🗂️
-            </button>
-            <button type="button" className="owlet-btn owlet-btn-ghost"
-              onClick={() => {
-                setCollectionMode('list');
-                setEditingCollection(null);
-                setCollectionItems([]);
-                setCollectionSearch('');
-                setCollectionSearchResults([]);
-              }}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-
       {/* ── SYNC HISTORY ── */}
       {view === 'sync' && (
         <div className="owlet-admin-list">
           {syncLogs.length === 0
             ? <div className="owlet-empty"><p>No sync history yet.</p></div>
             : syncLogs.map(log => (
-              <div key={log.id} className={`owlet-admin-item ${log.error ? 'owlet-sync-error' : ''}`}>
+              <div key={log.id}
+                className={`owlet-admin-item ${log.error ? 'owlet-sync-error' : ''}`}>
                 <div className="owlet-admin-item-info">
                   <h3>
                     {log.error ? '❌' : '✅'} {log.provider}
-                    <span className="owlet-catalog-source" style={{ marginLeft: '0.5rem' }}>{log.trigger}</span>
+                    <span className="owlet-catalog-source" style={{ marginLeft: '0.5rem' }}>
+                      {log.trigger}
+                    </span>
                   </h3>
                   <p>
                     {log.synced} new · {log.skipped} skipped · {new Date(log.createdAt).toLocaleString()}

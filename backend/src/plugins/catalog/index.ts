@@ -1,7 +1,6 @@
 import { OwletPlugin, PluginManifest } from '../plugin.interface';
 import { CatalogModule } from './catalog.module';
 import { CollectionItem } from './collection-item.entity';
-import { Collection } from './collection.entity';
 import { SyncLog } from './sync-log.entity';
 import manifest from './owlet-plugin.json';
 

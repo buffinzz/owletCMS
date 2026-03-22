@@ -11,8 +11,9 @@ import DigitalResourcesTab from '../../plugins/digital-resources/DigitalResource
 import { Suspense } from 'react';
 import { usePluginTabs } from '../../plugins/usePlugins';
 import { getPluginTabComponent } from '../../plugins/PluginTabRegistry';
+import CollectionsTab from '../collections/CollectionsTab';
 
-type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | string;
+type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | 'collections' | string;
 type Mode = 'list' | 'create' | 'edit';
 
 interface Event {
@@ -209,16 +210,16 @@ export default function AdminDashboard() {
           onClick={() => { setTab('pages'); setMode('list'); setEditingId(null); }}>
           📄 Pages
         </button>
-        {isAdmin && (
-          <button className={`owlet-tab ${tab === 'users' ? 'active' : ''}`}
-            onClick={() => { setTab('users'); setMode('list'); setEditingId(null); }}>
-            👥 Users
-          </button>
-        )}
+        
         
         <button className={`owlet-tab ${tab === 'media' ? 'active' : ''}`}
           onClick={() => { setTab('media'); setMode('list'); }}>
           📁 Media
+        </button>
+
+        <button className={`owlet-tab ${tab === 'collections' ? 'active' : ''}`}
+          onClick={() => { setTab('collections'); setMode('list'); }}>
+          🗂️ Collections
         </button>
 
         {/* Plugin tabs — dynamic! */}
@@ -231,7 +232,12 @@ export default function AdminDashboard() {
             {pluginTab.label}
           </button>
         ))}
-        
+        {isAdmin && (
+          <button className={`owlet-tab ${tab === 'users' ? 'active' : ''}`}
+            onClick={() => { setTab('users'); setMode('list'); setEditingId(null); }}>
+            👥 Users
+          </button>
+        )}
         {isAdmin && (
           <button className={`owlet-tab ${tab === 'settings' ? 'active' : ''}`}
             onClick={() => { setTab('settings'); setMode('list'); }}>
@@ -240,7 +246,7 @@ export default function AdminDashboard() {
         )}
 
         {/* New button — hide for non-content tabs */}
-        {!['users', 'settings', 'media', ...pluginTabs.map(t => t.id)].includes(tab) && (
+        {!['users', 'settings', 'media', 'collections', ...pluginTabs.map(t => t.id)].includes(tab) && (
           <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
             + New {tab === 'events' ? 'Event' : 'Page'}
           </button>
@@ -251,6 +257,7 @@ export default function AdminDashboard() {
       {tab === 'users' && <UsersTab />}
       {tab === 'settings' && <SettingsTab />}
       {tab === 'media' && <MediaLibrary />}
+      {tab === 'collections' && <CollectionsTab />}
       {/* Plugin tab content — dynamic! */}
       {pluginTabs.map(pluginTab => {
         if (tab !== pluginTab.id) return null;
