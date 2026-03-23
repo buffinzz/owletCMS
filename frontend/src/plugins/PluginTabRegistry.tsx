@@ -14,6 +14,10 @@ try {
   const DigitalResourcesTab = lazy(() => import('./digital-resources/DigitalResourcesTab'));
   tabComponents['digital-resources'] = DigitalResourcesTab;
 } catch { }
+try {
+  const CirculationTab = lazy(() => import('./native-catalog/CirculationTab'));
+  const HoldsTab = lazy(() => import('./native-catalog/HoldsTab'));
+} catch { }
 
 export function registerPluginTab(id: string, component: ComponentType) {
   tabComponents[id] = component;
