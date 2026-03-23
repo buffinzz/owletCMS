@@ -624,6 +624,7 @@ body {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .owlet-tab {
