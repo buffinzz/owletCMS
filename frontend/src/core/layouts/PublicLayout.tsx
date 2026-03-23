@@ -6,6 +6,7 @@ import { useSettings } from '../settings/SettingsContext';
 import NewArrivals from '../../plugins/catalog/NewArrivals';
 import FeaturedCollections from '../collections/FeaturedCollections';
 import DigitalResources from '../../plugins/digital-resources/DigitalResources';
+import SiteHeader from '../components/SiteHeader';
 
 export default function PublicLayout() {
   const { settings } = useSettings();
@@ -16,24 +17,7 @@ export default function PublicLayout() {
 
   return (
     <div>
-      <header className="owlet-header">
-        <div className="owlet-header-inner">
-          <Link to="/" className="owlet-logo">
-            <img src={logoSrc} alt={siteName} className="owlet-logo-icon" />
-            <span className="owlet-logo-text">
-              <span className="owlet-logo-name">{siteName}</span>
-              <span className="owlet-logo-tagline">{tagline}</span>
-            </span>
-          </Link>
-          <nav className="owlet-nav">
-            <Link to="/staff">Staff</Link>
-            <a href="#">Collections</a>
-            <a href="#">Events</a>
-            <a href="#">Resources</a>
-            <Link to="/admin/login">Staff login</Link>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="owlet-hero">
         <div className="owlet-hero-inner">

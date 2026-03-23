@@ -10,6 +10,8 @@ import StaffProfile from './core/staff/StaffProfile';
 import StaffLayout from './core/layouts/StaffLayout';
 import SetupWizard from './core/setup/SetupWizard';
 import CollectionDetail from "./core/collections/CollectionDetail";
+import CollectionsPage from './core/collections/CollectionsPage';
+import EventsPage from './core/events/EventsPage';
 
 function App() {
   const { isAuthenticated, canEdit } = useAuth();
@@ -55,6 +57,8 @@ function App() {
       } />
       <Route path="/setup" element={<Navigate to="/" />} />
       <Route path="/collections/:slug" element={<StaffLayout><CollectionDetail /></StaffLayout>} />
+      <Route path="/collections" element={<StaffLayout><CollectionsPage /></StaffLayout>} />
+      <Route path="/events" element={<StaffLayout><EventsPage /></StaffLayout>} />
     </Routes>
   );
 }
