@@ -242,8 +242,11 @@ Owlet started as an idea inspired by the needs of a **small rural library lookin
 
 If successful, the project could grow into a shared platform for community institutions everywhere to build **connected knowledge spaces**.
 ---
-![Owlet Squad Hard at Work](https://buffinzz.github.io/owletCMS/images/tech-support.png)
-*Actual footage of our dev team resolving tickets.*
+<p align="center">
+  <img src="./images/tech-support.png" width="600" alt="Owlet Squad Tech Support">
+  <br>
+  <i>Actual footage of our dev team resolving tickets.</i>
+</p>
 ## Stack
 
 - NestJS backend
