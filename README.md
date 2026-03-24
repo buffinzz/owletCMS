@@ -1,4 +1,4 @@
-# 🦉 Owlet CMS
+# ![Owlet - Dewey](https://buffinzz.github.io/owletCMS/images/logo.PNG) Owlet CMS
 
 **Knowledge that connects.**
 
