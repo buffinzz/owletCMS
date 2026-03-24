@@ -247,6 +247,7 @@ If successful, the project could grow into a shared platform for community insti
   <br>
   <i>Actual footage of our dev team resolving tickets.</i>
 </p>
+---
 ## Stack
 
 - NestJS backend
