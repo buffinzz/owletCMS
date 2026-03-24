@@ -102,4 +102,11 @@ export class PatronController {
   update(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
     return this.patronService.update(id, body);
   }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async remove(@Param('id') id: string) {
+    return this.patronService.remove(+id);
+  }
 }

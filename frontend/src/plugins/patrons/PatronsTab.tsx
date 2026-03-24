@@ -246,6 +246,22 @@ export default function PatronsTab() {
                       onClick={() => handleEdit(patron)}>
                       ✏️ Edit
                     </button>
+                    {isAdmin && (
+                      <button className="owlet-btn-action owlet-btn-delete"
+                        onClick={async () => {
+                          if (!confirm(`Delete ${patron.displayName || patron.username}? This cannot be undone.`)) return;
+                          try {
+                            await api.delete(`/patrons/${patron.id}`, authHeader);
+                            notify('Patron deleted.');
+                            fetchPatrons();
+                          } catch {
+                            notify('Failed to delete patron.', true);
+                          }
+                        }}>
+                        🗑️
+                      </button>
+                    )}
+
                   </div>
                 </div>
               ))

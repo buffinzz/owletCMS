@@ -268,6 +268,12 @@ export class PatronService {
     await this.userRepository.update(id, { password: hashed });
   }
 
+  // ── Delete ──
+  async remove(id: number): Promise<void> {
+    await this.profileRepository.delete({ userId: id });
+    await this.userRepository.delete(id);
+  }
+
   // ── Patron self-service ──
   async getPortalData(userId: number): Promise<PatronWithProfile | null> {
     return this.findOne(userId);
