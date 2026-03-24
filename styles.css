@@ -1,19 +1,23 @@
 :root {
   --purple-deep: #4c1d95;
   --purple-mid: #7c3aed;
-  --teal: #14b8a6;
-
-  --bg-dark: #020617;
-  --panel: rgba(15, 23, 42, 0.7);
-  --text: #e2e8f0;
-  --muted: #94a3b8;
+  --purple-light: #c4a8e8;
+  --amber: #e8820c;
+  --amber-light: #f5b05a;
+  --teal: #2a9d8f;
+  --teal-light: #4cc9bb;
+  --cream: #fdf8f0;
+  --cream-dark: #f0e8d8;
+  --ink: #1a1025;
+  --ink-light: #4a3d5c;
+  --white: #ffffff;
 }
 
 /* BASE */
 body {
   margin: 0;
   font-family: "Segoe UI", sans-serif;
-  color: var(--text);
+  color: var(--cream);
   background: var(--purple-deep);
   position: relative;
   overflow-x: hidden;
@@ -69,10 +73,10 @@ body::before {
   color: var(--white);
   line-height: 1.1;
   margin-bottom: 1rem;
+  color: var(--amber-light);
 }
 
-.owlet-hero-text h1 em {
-  color: var(--amber-light);
+.owlet-hero-text h2 em {
   font-style: italic;
 }
 
@@ -133,7 +137,7 @@ main {
 
 .caption {
   font-style: italic;
-  color: var(--muted);
+  color: var(--cream-dark);
   margin-bottom: 10px;
 }
 
@@ -175,7 +179,7 @@ main {
 }
 
 .owl {
-  background: var(--panel);
+  background: var(--ink);
   backdrop-filter: blur(12px);
   padding: 20px;
   border-radius: 16px;
@@ -231,5 +235,5 @@ main {
 footer {
   text-align: center;
   padding: 30px;
-  color: var(--muted);
+  color: var(--cream-dark);
 }
