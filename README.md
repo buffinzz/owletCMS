@@ -241,7 +241,8 @@ Owlet started as an idea inspired by the needs of a **small rural library lookin
 
 If successful, the project could grow into a shared platform for community institutions everywhere to build **connected knowledge spaces**.
 ---
-
+![Owlet Squad Hard at Work](https://buffinzz.github.io/owletCMS/images/tech-support.png)
+*Actual footage of our dev team resolving tickets.*
 ## Stack
 
 - NestJS backend
@@ -265,6 +266,10 @@ Start frontend:
 cd frontend
 npm run dev
 ---
+![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
 
 # 🦉
 
