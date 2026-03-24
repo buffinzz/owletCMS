@@ -16,6 +16,9 @@ body {
   margin-bottom: 10px;
 }
 
+.hero img {
+  max-width:300px;
+}
 .tagline {
   font-size: 1.2rem;
   opacity: 0.8;
