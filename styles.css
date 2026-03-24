@@ -237,3 +237,7 @@ footer {
   padding: 30px;
   color: var(--cream-dark);
 }
+
+footer a, footer a:visited {
+  color: var(--amber);
+}
