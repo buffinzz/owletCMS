@@ -36,6 +36,9 @@ export default function SettingsTab() {
     library_logo_url: '',
     library_logo_alt: '',
     theme_primary_colour: '#3d1f6e',
+    patron_self_registration: 'true',
+    patron_require_approval: 'false',
+    patron_card_prefix: 'LIB',
   });
 
   const [pluginList, setPluginList] = useState<PluginInfo[]>([]);
@@ -56,6 +59,9 @@ export default function SettingsTab() {
       library_logo_url: settings.library_logo_url || '',
       library_logo_alt: (settings as any).library_logo_alt || '',
       theme_primary_colour: settings.theme_primary_colour || '#3d1f6e',
+      patron_self_registration: (settings as any).patron_self_registration ?? 'true',
+      patron_require_approval: (settings as any).patron_require_approval ?? 'false',
+      patron_card_prefix: (settings as any).patron_card_prefix ?? 'LIB',
     });
   }, [settings]);
 
@@ -268,6 +274,44 @@ export default function SettingsTab() {
           ))}
         </div>
       )}
+      <p className="owlet-form-section-label" style={{ marginTop: '1rem' }}>
+        🪪 Patron Accounts
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="checkbox"
+            id="selfReg"
+            checked={form.patron_self_registration === 'true'}
+            onChange={e => setForm({ ...form, patron_self_registration: e.target.checked ? 'true' : 'false' })}
+          />
+          <label htmlFor="selfReg"
+            style={{ fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'Source Serif 4, serif' }}>
+            Allow self-registration
+          </label>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="checkbox"
+            id="requireApproval"
+            checked={form.patron_require_approval === 'true'}
+            onChange={e => setForm({ ...form, patron_require_approval: e.target.checked ? 'true' : 'false' })}
+          />
+          <label htmlFor="requireApproval"
+            style={{ fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'Source Serif 4, serif' }}>
+            Require staff approval for new accounts
+          </label>
+        </div>
+        <div className="owlet-field" style={{ maxWidth: 240 }}>
+          <label>Library Card Prefix</label>
+          <input
+            value={form.patron_card_prefix}
+            onChange={e => setForm({ ...form, patron_card_prefix: e.target.value })}
+            placeholder="LIB"
+          />
+        </div>
+      </div>
       {/* ── Save button ── */}
       <div className="owlet-form-actions" style={{ marginTop: '1rem' }}>
         <button

@@ -22,7 +22,7 @@ export class CatalogController {
 
   @Get('sync-history')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Roles('admin', 'editor', 'staff')
   getSyncHistory() {
     return this.catalogService.getSyncHistory();
   }
@@ -36,7 +36,7 @@ export class CatalogController {
 
   @Patch('bulk-visibility')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Roles('admin', 'editor', 'staff')
   bulkVisibility(@Body() body: { ids: number[]; isVisible: boolean }) {
     return this.catalogService.bulkToggleVisibility(body.ids, body.isVisible);
   }
@@ -67,14 +67,14 @@ export class CatalogController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Roles('admin', 'editor', 'staff')
   create(@Body() data: Partial<CollectionItem>) {
     return this.catalogService.create(data);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'editor')
+  @Roles('admin', 'editor', 'staff')
   update(@Param('id') id: string, @Body() data: Partial<CollectionItem>) {
     return this.catalogService.update(+id, data);
   }

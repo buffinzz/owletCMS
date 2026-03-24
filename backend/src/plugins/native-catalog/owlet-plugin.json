@@ -1,0 +1,25 @@
+{
+  "name": "owlet-plugin-native-catalog",
+  "version": "0.1.0",
+  "displayName": "Native Catalog",
+  "description": "Built-in cataloging for libraries without an ILS. Manage items, copies, checkouts and holds.",
+  "author": "Owlet Core Team",
+  "owletVersion": ">=0.1.0",
+  "requires": ["owlet-plugin-catalog"],
+  "permissions": ["catalog", "users", "email"],
+  "adminTabs": [
+  ],
+  "publicRoutes": [],
+  "settings": [
+    { "key": "loan_period_days", "default": "21", "label": "Default loan period (days)", "type": "number" },
+    { "key": "max_renewals", "default": "2", "label": "Maximum renewals", "type": "number" },
+    { "key": "hold_expiry_days", "default": "7", "label": "Hold expiry (days)", "type": "number" },
+    { "key": "overdue_fine_per_day", "default": "0", "label": "Overdue fine per day ($)", "type": "number" },
+    { "key": "reminder_days_before", "default": "3", "label": "Send reminder N days before due", "type": "number" },
+    { "key": "smtp_host", "default": "", "label": "SMTP Host", "type": "string" },
+    { "key": "smtp_port", "default": "587", "label": "SMTP Port", "type": "number" },
+    { "key": "smtp_user", "default": "", "label": "SMTP Username", "type": "string" },
+    { "key": "smtp_pass", "default": "", "label": "SMTP Password", "type": "string" },
+    { "key": "smtp_from", "default": "", "label": "From Email Address", "type": "string" }
+  ]
+}

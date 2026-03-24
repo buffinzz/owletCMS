@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../core/auth/AuthContext';
 import api from '../../api';
 import ImageUpload from '../../core/components/ImageUpload';
-import CirculationTab from '../native-catalog/CirculationTab';
-import HoldsTab from '../native-catalog/HoldsTab';
 
 interface CatalogItem {
   id: number;
@@ -18,9 +16,7 @@ interface CatalogItem {
   subjects?: string[];
   format?: string;
   source: string;
-  externalUrl?: string;
   isVisible: boolean;
-  createdAt: string;
 }
 
 interface NativeCopy {
@@ -33,19 +29,6 @@ interface NativeCopy {
   status: string;
   notes?: string;
 }
-
-interface SyncLog {
-  id: number;
-  provider: string;
-  synced: number;
-  skipped: number;
-  error?: string;
-  trigger: string;
-  createdAt: string;
-}
-
-type CatalogView = 'items' | 'sync' | 'circulation' | 'holds';
-type ItemMode = 'list' | 'create' | 'edit' | 'copies';
 
 const FORMATS = [
   { value: 'book', label: '📖 Book' },
@@ -60,51 +43,28 @@ const FORMATS = [
 
 const CONDITIONS = ['new', 'good', 'fair', 'poor'];
 
-const COPY_STATUSES = ['available', 'checked_out', 'on_hold', 'lost', 'withdrawn'];
-
 const emptyForm = {
   title: '', author: '', isbn: '', publisher: '',
   publishedDate: '', summary: '', coverUrl: '', coverAlt: '',
-  format: 'book', subjects: [] as string[], isVisible: true, source: 'native',
+  format: 'book', subjects: [] as string[], isVisible: true,
 };
 
 const emptyCopy = {
   barcode: '', location: '', shelfLocation: '',
-  condition: 'good', status: 'available', notes: '',
+  condition: 'good', notes: '',
 };
 
-const copyStatusColor = (status: string) => {
-  switch (status) {
-    case 'available': return 'var(--teal)';
-    case 'checked_out': return 'var(--amber)';
-    case 'on_hold': return 'var(--purple-mid)';
-    case 'lost': return '#c0392b';
-    default: return 'var(--ink-light)';
-  }
-};
+type Mode = 'list' | 'create' | 'edit' | 'copies';
 
-export default function CatalogTab() {
+export default function NativeCatalogTab() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const authHeader = { headers: { Authorization: `Bearer ${user?.token}` } };
 
-  const [view, setView] = useState<CatalogView>('items');
   const [items, setItems] = useState<CatalogItem[]>([]);
-  const [syncLogs, setSyncLogs] = useState<SyncLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
-
-  // Filters
-  const [search, setSearch] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('');
-  const [visibleFilter, setVisibleFilter] = useState('');
-
-  // Bulk selection
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-
-  // Item mode
-  const [itemMode, setItemMode] = useState<ItemMode>('list');
-  const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
+  const [mode, setMode] = useState<Mode>('list');
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [subjectInput, setSubjectInput] = useState('');
 
@@ -115,93 +75,39 @@ export default function CatalogTab() {
   const isbnRef = useRef<HTMLInputElement>(null);
 
   // Copies
-  const [copiesItem, setCopiesItem] = useState<CatalogItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null);
   const [copies, setCopies] = useState<NativeCopy[]>([]);
   const [copyForm, setCopyForm] = useState(emptyCopy);
   const [editingCopyId, setEditingCopyId] = useState<number | null>(null);
 
+  // Search
+  const [search, setSearch] = useState('');
+
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => { fetchItems(); fetchSyncLogs(); }, []);
-  useEffect(() => { fetchItems(); }, [search, sourceFilter, visibleFilter]);
+  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => { fetchItems(); }, [search]);
 
   const fetchItems = () => {
     setLoading(true);
     const params = new URLSearchParams();
+    params.set('source', 'native');
     if (search) params.set('search', search);
-    if (sourceFilter) params.set('source', sourceFilter);
-    if (visibleFilter) params.set('visible', visibleFilter);
     api.get(`/catalog?${params.toString()}`)
       .then(res => setItems(res.data))
       .finally(() => setLoading(false));
   };
 
-  const fetchSyncLogs = () => {
-    api.get('/catalog/sync-history', authHeader)
-      .then(res => setSyncLogs(res.data))
-      .catch(() => {});
-  };
-
   const fetchCopies = (itemId: number) => {
     api.get(`/catalog/copies/item/${itemId}`, authHeader)
-      .then(res => setCopies(res.data))
-      .catch(() => setCopies([]));
+      .then(res => setCopies(res.data));
   };
 
   const notify = (msg: string, isError = false) => {
     if (isError) { setError(msg); setSuccess(''); }
     else { setSuccess(msg); setError(''); }
     setTimeout(() => { setSuccess(''); setError(''); }, 4000);
-  };
-
-  // ── Sync ──
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      const res = await api.post('/catalog/sync', {}, authHeader);
-      notify(`Sync complete! ${res.data.synced} new items, ${res.data.skipped} skipped.`);
-      fetchItems();
-      fetchSyncLogs();
-    } catch {
-      notify('Sync failed.', true);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  // ── Bulk ──
-  const toggleSelect = (id: number) => {
-    const next = new Set(selected);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setSelected(next);
-  };
-
-  const selectAll = () => {
-    selected.size === items.length
-      ? setSelected(new Set())
-      : setSelected(new Set(items.map(i => i.id)));
-  };
-
-  const handleBulkVisibility = async (isVisible: boolean) => {
-    if (!selected.size) return;
-    try {
-      await api.patch('/catalog/bulk-visibility', { ids: Array.from(selected), isVisible }, authHeader);
-      notify(`${selected.size} items ${isVisible ? 'shown' : 'hidden'}.`);
-      setSelected(new Set());
-      fetchItems();
-    } catch { notify('Bulk action failed.', true); }
-  };
-
-  const handleBulkDelete = async () => {
-    if (!selected.size) return;
-    if (!confirm(`Delete ${selected.size} items?`)) return;
-    try {
-      await api.delete('/catalog/bulk-delete', { ...authHeader, data: { ids: Array.from(selected) } });
-      notify(`${selected.size} items deleted.`);
-      setSelected(new Set());
-      fetchItems();
-    } catch { notify('Bulk delete failed.', true); }
   };
 
   // ── ISBN Lookup ──
@@ -236,16 +142,7 @@ export default function CatalogTab() {
   };
 
   // ── Item CRUD ──
-  const handleNewItem = () => {
-    setForm(emptyForm);
-    setIsbnInput('');
-    setIsbnFound(false);
-    setSubjectInput('');
-    setEditingItem(null);
-    setItemMode('create');
-  };
-
-  const handleEditItem = (item: CatalogItem) => {
+  const handleEdit = (item: CatalogItem) => {
     setForm({
       title: item.title,
       author: item.author || '',
@@ -258,56 +155,86 @@ export default function CatalogTab() {
       format: item.format || 'book',
       subjects: item.subjects || [],
       isVisible: item.isVisible,
-      source: item.source,
     });
-    setEditingItem(item);
-    setItemMode('edit');
+    setEditingId(item.id);
+    setMode('edit');
   };
 
   const handleViewCopies = (item: CatalogItem) => {
-    setCopiesItem(item);
+    setSelectedItem(item);
     setCopyForm(emptyCopy);
     setEditingCopyId(null);
     fetchCopies(item.id);
-    setItemMode('copies');
+    setMode('copies');
   };
 
-  const handleSaveItem = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingItem) {
-        await api.patch(`/catalog/${editingItem.id}`, form, authHeader);
+      const data = { ...form, source: 'native' };
+      if (editingId) {
+        await api.patch(`/catalog/${editingId}`, data, authHeader);
         notify('Item saved!');
       } else {
-        const newItem = await api.post('/catalog', form, authHeader);
-        notify('Item added! 📚');
-        // Offer to add copies immediately for native items
-        if (form.source === 'native') {
-          handleViewCopies(newItem.data);
-          return;
-        }
+        await api.post('/catalog', data, authHeader);
+        notify('Item created! 📚');
       }
-      handleCancelItem();
+      handleCancel();
       fetchItems();
-    } catch { notify('Something went wrong.', true); }
+    } catch {
+      notify('Something went wrong.', true);
+    }
   };
 
-  const handleDeleteItem = async (id: number) => {
-    if (!confirm('Delete this item?')) return;
+  const handleDelete = async (id: number) => {
+    if (!confirm('Delete this item and all its copies?')) return;
     try {
       await api.delete(`/catalog/${id}`, authHeader);
       notify('Item deleted.');
       fetchItems();
-    } catch { notify('Failed to delete.', true); }
+    } catch {
+      notify('Failed to delete.', true);
+    }
   };
 
-  const handleCancelItem = () => {
-    setItemMode('list');
-    setEditingItem(null);
+  const handleCancel = () => {
+    setMode('list');
+    setEditingId(null);
     setForm(emptyForm);
     setIsbnInput('');
     setIsbnFound(false);
     setSubjectInput('');
+  };
+
+  // ── Copy CRUD ──
+  const handleSaveCopy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedItem) return;
+    try {
+      if (editingCopyId) {
+        await api.patch(`/catalog/copies/${editingCopyId}`, copyForm, authHeader);
+        notify('Copy updated!');
+      } else {
+        await api.post('/catalog/copies', { ...copyForm, itemId: selectedItem.id }, authHeader);
+        notify('Copy added!');
+      }
+      setCopyForm(emptyCopy);
+      setEditingCopyId(null);
+      fetchCopies(selectedItem.id);
+    } catch {
+      notify('Failed to save copy.', true);
+    }
+  };
+
+  const handleDeleteCopy = async (copyId: number) => {
+    if (!confirm('Delete this copy?')) return;
+    try {
+      await api.delete(`/catalog/copies/${copyId}`, authHeader);
+      notify('Copy deleted.');
+      if (selectedItem) fetchCopies(selectedItem.id);
+    } catch {
+      notify('Failed to delete copy.', true);
+    }
   };
 
   const addSubject = (s: string) => {
@@ -320,138 +247,48 @@ export default function CatalogTab() {
     setForm(prev => ({ ...prev, subjects: prev.subjects.filter(x => x !== s) }));
   };
 
-  // ── Copy CRUD ──
-  const handleSaveCopy = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!copiesItem) return;
-    try {
-      if (editingCopyId) {
-        await api.patch(`/catalog/copies/${editingCopyId}`, copyForm, authHeader);
-        notify('Copy updated!');
-      } else {
-        await api.post('/catalog/copies', { ...copyForm, itemId: copiesItem.id }, authHeader);
-        notify('Copy added!');
-      }
-      setCopyForm(emptyCopy);
-      setEditingCopyId(null);
-      fetchCopies(copiesItem.id);
-    } catch { notify('Failed to save copy.', true); }
+  const statusColor = (status: string) => {
+    switch (status) {
+      case 'available': return 'var(--teal)';
+      case 'checked_out': return 'var(--amber)';
+      case 'on_hold': return 'var(--purple-mid)';
+      case 'lost': return '#c0392b';
+      default: return 'var(--ink-light)';
+    }
   };
-
-  const handleDeleteCopy = async (copyId: number) => {
-    if (!confirm('Delete this copy?')) return;
-    try {
-      await api.delete(`/catalog/copies/${copyId}`, authHeader);
-      notify('Copy deleted.');
-      if (copiesItem) fetchCopies(copiesItem.id);
-    } catch { notify('Failed to delete copy.', true); }
-  };
-
-  // Safety guard
-  if (itemMode === 'edit' && !editingItem) {
-    setItemMode('list');
-    return null;
-  }
-
-  const isNativeForm = form.source === 'native' || itemMode === 'create';
 
   return (
-    <div className="owlet-catalog-tab">
+    <div>
       {success && <div className="owlet-alert owlet-alert-success">{success}</div>}
       {error && <div className="owlet-alert owlet-alert-error">{error}</div>}
 
-      {/* Sub-navigation */}
-      <div className="owlet-catalog-nav">
-        <button className={`owlet-tab ${view === 'items' ? 'active' : ''}`}
-          onClick={() => { setView('items'); setItemMode('list'); }}>
-          📚 Items ({items.length})
-        </button>
-        <button className={`owlet-tab ${view === 'circulation' ? 'active' : ''}`}
-          onClick={() => setView('circulation')}>
-          🔄 Circulation
-        </button>
-        <button className={`owlet-tab ${view === 'holds' ? 'active' : ''}`}
-          onClick={() => setView('holds')}>
-          📋 Holds
-        </button>
-        <button className={`owlet-tab ${view === 'sync' ? 'active' : ''}`}
-          onClick={() => { setView('sync'); setItemMode('list'); }}>
-          🔄 Sync History
-        </button>
-        ...
-      </div>
-
-      {/* ── ITEMS LIST ── */}
-      {view === 'items' && itemMode === 'list' && (
+      {/* ── LIST ── */}
+      {mode === 'list' && (
         <>
           <div className="owlet-catalog-filters">
             <input
               className="owlet-catalog-search"
-              placeholder="Search title, author, ISBN..."
+              placeholder="Search native catalog..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
-            <select className="owlet-select owlet-select-sm" value={sourceFilter}
-              onChange={e => setSourceFilter(e.target.value)}>
-              <option value="">All sources</option>
-              <option value="native">📖 Native</option>
-              <option value="evergreen">Evergreen</option>
-              <option value="koha">Koha</option>
-            </select>
-            <select className="owlet-select owlet-select-sm" value={visibleFilter}
-              onChange={e => setVisibleFilter(e.target.value)}>
-              <option value="">All visibility</option>
-              <option value="true">Visible</option>
-              <option value="false">Hidden</option>
-            </select>
             <button
               className="owlet-btn owlet-btn-primary owlet-btn-new"
-              onClick={handleNewItem}
+              onClick={() => { setForm(emptyForm); setIsbnInput(''); setMode('create'); }}
             >
               + Add Item
             </button>
           </div>
 
-          {selected.size > 0 && (
-            <div className="owlet-bulk-actions">
-              <span>{selected.size} selected</span>
-              <button className="owlet-btn-action owlet-btn-edit"
-                onClick={() => handleBulkVisibility(true)}>👁️ Show</button>
-              <button className="owlet-btn-action owlet-btn-edit"
-                onClick={() => handleBulkVisibility(false)}>🚫 Hide</button>
-              {isAdmin && (
-                <button className="owlet-btn-action owlet-btn-delete"
-                  onClick={handleBulkDelete}>🗑️ Delete</button>
-              )}
-              <button className="owlet-btn-action owlet-btn-edit"
-                onClick={() => setSelected(new Set())}>✕ Clear</button>
-            </div>
-          )}
-
           <div className="owlet-admin-list">
-            <div className="owlet-catalog-select-all">
-              <input type="checkbox"
-                checked={selected.size === items.length && items.length > 0}
-                onChange={selectAll} />
-              <span>{items.length} items</span>
-            </div>
-
             {loading ? (
               <div className="owlet-loading"><span /><span /><span /></div>
             ) : items.length === 0 ? (
               <div className="owlet-empty">
-                <p>No items found.
-                  {!sourceFilter && (
-                    <> Try <button className="owlet-link-btn" onClick={handleNewItem}>adding an item</button> or syncing from your catalog provider.</>
-                  )}
-                </p>
+                <p>No native catalog items yet — add your first item!</p>
               </div>
             ) : items.map(item => (
-              <div key={item.id}
-                className={`owlet-admin-item owlet-catalog-item ${!item.isVisible ? 'owlet-catalog-item-hidden' : ''}`}>
-                <input type="checkbox" checked={selected.has(item.id)}
-                  onChange={() => toggleSelect(item.id)}
-                  onClick={e => e.stopPropagation()} />
+              <div key={item.id} className={`owlet-admin-item ${!item.isVisible ? 'owlet-catalog-item-hidden' : ''}`}>
                 <div className="owlet-catalog-thumb-wrap">
                   {item.coverUrl && (
                     <img src={item.coverUrl} alt={item.coverAlt || item.title}
@@ -463,9 +300,7 @@ export default function CatalogTab() {
                     {item.title}
                     {!item.isVisible && <span className="owlet-catalog-hidden-badge">hidden</span>}
                     <span className="owlet-catalog-source" style={{ marginLeft: '0.5rem' }}>
-                      {item.source === 'native'
-                        ? (FORMATS.find(f => f.value === item.format)?.label.split(' ').slice(1).join(' ') || 'Native')
-                        : item.source}
+                      {FORMATS.find(f => f.value === item.format)?.label || item.format}
                     </span>
                   </h3>
                   <p>
@@ -474,19 +309,17 @@ export default function CatalogTab() {
                   </p>
                 </div>
                 <div className="owlet-admin-item-actions">
-                  {item.source === 'native' && (
-                    <button className="owlet-btn-action owlet-btn-edit"
-                      onClick={() => handleViewCopies(item)}>
-                      📋 Copies
-                    </button>
-                  )}
                   <button className="owlet-btn-action owlet-btn-edit"
-                    onClick={() => handleEditItem(item)}>
+                    onClick={() => handleViewCopies(item)}>
+                    📋 Copies
+                  </button>
+                  <button className="owlet-btn-action owlet-btn-edit"
+                    onClick={() => handleEdit(item)}>
                     ✏️ Edit
                   </button>
                   {isAdmin && (
                     <button className="owlet-btn-action owlet-btn-delete"
-                      onClick={() => handleDeleteItem(item.id)}>
+                      onClick={() => handleDelete(item.id)}>
                       🗑️
                     </button>
                   )}
@@ -498,39 +331,16 @@ export default function CatalogTab() {
       )}
 
       {/* ── CREATE / EDIT FORM ── */}
-      {view === 'items' && (itemMode === 'create' || itemMode === 'edit') && (
-        <form className="owlet-admin-form" onSubmit={handleSaveItem}>
+      {(mode === 'create' || mode === 'edit') && (
+        <form className="owlet-admin-form" onSubmit={handleSubmit}>
           <h3 className="owlet-form-title">
-            {editingItem ? '✏️ Edit Item' : '📚 Add Item'}
+            {editingId ? '✏️ Edit Item' : '📚 Add Item'}
           </h3>
 
-          {/* Source selector — only on create */}
-          {itemMode === 'create' && (
-            <div className="owlet-field" style={{ marginBottom: '1rem' }}>
-              <label>Source</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  type="button"
-                  className={`owlet-media-filter ${form.source === 'native' ? 'active' : ''}`}
-                  onClick={() => setForm({ ...form, source: 'native' })}
-                >
-                  📖 Native (add to our collection)
-                </button>
-                <button
-                  type="button"
-                  className={`owlet-media-filter ${form.source === 'external' ? 'active' : ''}`}
-                  onClick={() => setForm({ ...form, source: 'external' })}
-                >
-                  🔗 External (link only)
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ISBN lookup — native items only, create mode */}
-          {itemMode === 'create' && form.source === 'native' && (
+          {/* ISBN lookup — only on create */}
+          {mode === 'create' && (
             <div className="owlet-isbn-lookup">
-              <p className="owlet-form-section-label">📖 ISBN Lookup</p>
+              <p className="owlet-form-section-label">ISBN Lookup</p>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
                   ref={isbnRef}
@@ -540,7 +350,6 @@ export default function CatalogTab() {
                   onChange={e => setIsbnInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleIsbnLookup(); } }}
                   style={{ flex: 1 }}
-                  autoFocus
                 />
                 <button
                   type="button"
@@ -549,18 +358,17 @@ export default function CatalogTab() {
                   onClick={handleIsbnLookup}
                   disabled={isbnLoading}
                 >
-                  {isbnLoading ? '⏳' : '🔍 Look Up'}
+                  {isbnLoading ? '⏳ Looking up...' : '🔍 Look Up'}
                 </button>
               </div>
-              {isbnFound ? (
-                <p style={{ fontSize: '0.8rem', color: 'var(--teal)', marginTop: '0.35rem' }}>
-                  ✓ Data loaded from Open Library — review and edit below
-                </p>
-              ) : (
-                <p style={{ fontSize: '0.75rem', color: 'var(--ink-light)', marginTop: '0.25rem' }}>
-                  Press Enter to look up, or fill in the form below manually
+              {isbnFound && (
+                <p style={{ fontSize: '0.8rem', color: 'var(--teal)', marginTop: '0.4rem' }}>
+                  ✓ Data loaded — review and edit below
                 </p>
               )}
+              <p style={{ fontSize: '0.75rem', color: 'var(--ink-light)', marginTop: '0.25rem' }}>
+                Or fill in manually below
+              </p>
             </div>
           )}
 
@@ -606,17 +414,6 @@ export default function CatalogTab() {
                 onChange={e => setForm({ ...form, publishedDate: e.target.value })} />
             </div>
           </div>
-
-          {/* External URL — for non-native items */}
-          {form.source !== 'native' && (
-            <div className="owlet-field">
-              <label>Catalog Link</label>
-              <input value={(form as any).externalUrl || ''}
-                onChange={e => setForm({ ...form, ...(form as any), externalUrl: e.target.value } as any)}
-                placeholder="https://catalog.library.org/record/12345" />
-            </div>
-          )}
-
           <div className="owlet-field">
             <label>Description</label>
             <textarea value={form.summary}
@@ -632,7 +429,6 @@ export default function CatalogTab() {
             size="small"
           />
 
-          {/* Subjects */}
           <div className="owlet-field" style={{ marginTop: '0.75rem' }}>
             <label>Subjects / Tags</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.4rem' }}>
@@ -668,40 +464,31 @@ export default function CatalogTab() {
 
           <div className="owlet-form-actions" style={{ marginTop: '1.5rem' }}>
             <button type="submit" className="owlet-btn owlet-btn-primary" style={{ width: 'auto' }}>
-              {editingItem ? 'Save Changes' : 'Add to Catalog'} 📚
+              {editingId ? 'Save Changes' : 'Add to Catalog'} 📚
             </button>
-            <button type="button" className="owlet-btn owlet-btn-ghost" onClick={handleCancelItem}>
+            <button type="button" className="owlet-btn owlet-btn-ghost" onClick={handleCancel}>
               Cancel
             </button>
           </div>
         </form>
       )}
 
-      {/* ── COPIES PANEL ── */}
-      {view === 'items' && itemMode === 'copies' && copiesItem && (
+      {/* ── COPIES VIEW ── */}
+      {mode === 'copies' && selectedItem && (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
             <button className="owlet-btn owlet-btn-ghost" style={{ width: 'auto' }}
-              onClick={() => { setItemMode('list'); setCopiesItem(null); setCopies([]); }}>
+              onClick={() => { setMode('list'); setSelectedItem(null); }}>
               ← Back
             </button>
             <div>
               <h3 style={{ fontFamily: 'Playfair Display, serif', color: 'var(--purple-deep)', margin: 0 }}>
-                {copiesItem.title}
+                {selectedItem.title}
               </h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--ink-light)', margin: 0 }}>
                 {copies.length} cop{copies.length !== 1 ? 'ies' : 'y'}
-                {copies.filter(c => c.status === 'available').length > 0 && (
-                  <span style={{ color: 'var(--teal)' }}>
-                    {' '}· {copies.filter(c => c.status === 'available').length} available
-                  </span>
-                )}
               </p>
             </div>
-            <button className="owlet-btn owlet-btn-ghost" style={{ width: 'auto', marginLeft: 'auto' }}
-              onClick={() => handleEditItem(copiesItem)}>
-              ✏️ Edit Item
-            </button>
           </div>
 
           {/* Copies list */}
@@ -711,13 +498,13 @@ export default function CatalogTab() {
                 <div key={copy.id} className="owlet-admin-item">
                   <div className="owlet-admin-item-info" style={{ flex: 1 }}>
                     <h3>
-                      <span style={{ fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
                         {copy.barcode}
                       </span>
                       <span style={{
-                        fontSize: '0.72rem',
+                        fontSize: '0.75rem',
                         color: 'var(--white)',
-                        background: copyStatusColor(copy.status),
+                        background: statusColor(copy.status),
                         borderRadius: '4px',
                         padding: '1px 6px',
                         marginLeft: '0.5rem',
@@ -727,7 +514,7 @@ export default function CatalogTab() {
                       </span>
                     </h3>
                     <p>
-                      <span style={{ textTransform: 'capitalize' }}>{copy.condition} condition</span>
+                      {copy.condition} condition
                       {copy.location && ` · ${copy.location}`}
                       {copy.shelfLocation && ` · ${copy.shelfLocation}`}
                       {copy.notes && ` · ${copy.notes}`}
@@ -741,7 +528,6 @@ export default function CatalogTab() {
                           location: copy.location || '',
                           shelfLocation: copy.shelfLocation || '',
                           condition: copy.condition,
-                          status: copy.status,
                           notes: copy.notes || '',
                         });
                         setEditingCopyId(copy.id);
@@ -768,16 +554,10 @@ export default function CatalogTab() {
             </h4>
             <div className="owlet-field-row">
               <div className="owlet-field">
-                <label>
-                  Barcode
-                  <span style={{ fontWeight: 300, textTransform: 'none', fontSize: '0.75rem' }}>
-                    {' '}(leave blank to auto-generate)
-                  </span>
-                </label>
+                <label>Barcode <span style={{ fontWeight: 300, textTransform: 'none', fontSize: '0.75rem' }}>(leave blank to auto-generate)</span></label>
                 <input value={copyForm.barcode}
                   onChange={e => setCopyForm({ ...copyForm, barcode: e.target.value })}
-                  placeholder="OWL000001"
-                  autoFocus />
+                  placeholder="OWL000001" />
               </div>
               <div className="owlet-field">
                 <label>Condition</label>
@@ -803,19 +583,6 @@ export default function CatalogTab() {
                   placeholder="FIC ATW" />
               </div>
             </div>
-            {editingCopyId && (
-              <div className="owlet-field">
-                <label>Status</label>
-                <select className="owlet-select" value={copyForm.status}
-                  onChange={e => setCopyForm({ ...copyForm, status: e.target.value })}>
-                  {COPY_STATUSES.map(s => (
-                    <option key={s} value={s} style={{ textTransform: 'capitalize' }}>
-                      {s.replace('_', ' ')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
             <div className="owlet-field">
               <label>Notes</label>
               <input value={copyForm.notes}
@@ -836,34 +603,6 @@ export default function CatalogTab() {
           </form>
         </div>
       )}
-
-      {/* ── SYNC HISTORY ── */}
-      {view === 'sync' && (
-        <div className="owlet-admin-list">
-          {syncLogs.length === 0
-            ? <div className="owlet-empty"><p>No sync history yet.</p></div>
-            : syncLogs.map(log => (
-              <div key={log.id}
-                className={`owlet-admin-item ${log.error ? 'owlet-sync-error' : ''}`}>
-                <div className="owlet-admin-item-info">
-                  <h3>
-                    {log.error ? '❌' : '✅'} {log.provider}
-                    <span className="owlet-catalog-source" style={{ marginLeft: '0.5rem' }}>
-                      {log.trigger}
-                    </span>
-                  </h3>
-                  <p>
-                    {log.synced} new · {log.skipped} skipped · {new Date(log.createdAt).toLocaleString()}
-                    {log.error && <span style={{ color: '#c0392b' }}> · {log.error}</span>}
-                  </p>
-                </div>
-              </div>
-            ))
-          }
-        </div>
-      )}
-      {view === 'circulation' && <CirculationTab />}
-      {view === 'holds' && <HoldsTab />}
     </div>
   );
 }

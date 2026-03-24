@@ -28,12 +28,12 @@ const emptyUserForm = {
   bio: '',
   photoUrl: '',
   photoAlt: '',
-  role: 'viewer',
+  role: 'staff',
   emergencyContact: '',
   notes: '',
 };
 
-const ROLES = ['admin', 'editor', 'viewer'];
+const ROLES = ['admin', 'editor', 'staff', 'viewer'];
 
 export default function UsersTab() {
   const { user } = useAuth();
@@ -69,6 +69,8 @@ export default function UsersTab() {
       phone: '',
       location: '',
       bio: '',
+      photoUrl: '',
+      photoAlt: '',
       role: u.role,
       emergencyContact: '',
       notes: '',
@@ -125,6 +127,7 @@ export default function UsersTab() {
   const roleColor = (role: string) => {
     if (role === 'admin') return 'var(--purple-deep)';
     if (role === 'editor') return 'var(--teal)';
+    if (role === 'staff') return 'var(--amber)';
     return 'var(--ink-light)';
   };
 

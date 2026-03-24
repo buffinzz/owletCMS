@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import api from '../../api';
 import owletLogo from '../../assets/owlet-logo.png';
 import { useNavigate } from 'react-router-dom';
+import { getAuthLandingPath } from './getAuthLandingPath';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -19,10 +20,10 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', { username, password });
       login(res.data.username, res.data.access_token, res.data.role);
+      navigate(getAuthLandingPath(res.data.role), { replace: true });
     } catch {
       setError('Invalid username or password.');
     } finally {
-      navigate('/admin');
       setLoading(false);
     }
   };

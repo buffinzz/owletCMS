@@ -17,14 +17,15 @@ export class AuthService {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    // Record last login
-    await this.usersService.updateLastLogin(user.id);
+    // Patron approval check handled by patron plugin at /patrons/me
+    // Auth service stays lean — just validates credentials
 
     const payload = { sub: user.id, username: user.username, role: user.role };
     return {
       access_token: this.jwtService.sign(payload),
-      role: user.role,
       username: user.username,
+      role: user.role,
+      id: user.id,
     };
   }
 }

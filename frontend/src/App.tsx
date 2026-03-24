@@ -5,6 +5,8 @@ import api from './api';
 import PublicLayout from './core/layouts/PublicLayout';
 import AdminLayout from './core/layouts/AdminLayout';
 import LoginPage from './core/auth/LoginPage';
+import { getAuthLandingPath } from './core/auth/getAuthLandingPath';
+import { canAccessAdmin } from './core/auth/roleUtils';
 import StaffDirectory from './core/staff/StaffDirectory';
 import StaffProfile from './core/staff/StaffProfile';
 import StaffLayout from './core/layouts/StaffLayout';
@@ -12,10 +14,14 @@ import SetupWizard from './core/setup/SetupWizard';
 import CollectionDetail from "./core/collections/CollectionDetail";
 import CollectionsPage from './core/collections/CollectionsPage';
 import EventsPage from './core/events/EventsPage';
+import RegisterPage from './plugins/patrons/RegisterPage';
+import PatronPortal from './plugins/patrons/PatronPortal';
 
 function App() {
-  const { isAuthenticated, canEdit } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null);
+  const authenticatedLandingPath = getAuthLandingPath(user?.role);
+  const hasAdminAccess = canAccessAdmin(user?.role);
 
   useEffect(() => {
     api.get('/settings/setup-status').then(res => {
@@ -48,17 +54,20 @@ function App() {
       <Route path="/staff" element={<StaffLayout><StaffDirectory /></StaffLayout>} />
       <Route path="/staff/:username" element={<StaffLayout><StaffProfile /></StaffLayout>} />
       <Route path="/admin/login" element={
-        isAuthenticated ? <Navigate to="/admin" /> : <LoginPage />
-      } />
-      <Route path="/admin" element={
-        isAuthenticated && canEdit
-          ? <AdminLayout />
-          : <Navigate to="/admin/login" />
-      } />
-      <Route path="/setup" element={<Navigate to="/" />} />
+      !isAuthenticated ? <LoginPage /> :
+      <Navigate to={authenticatedLandingPath} replace />
+    } />
+    <Route path="/admin" element={
+      !isAuthenticated ? <Navigate to="/admin/login" replace /> :
+      hasAdminAccess ? <AdminLayout /> :
+      <Navigate to={authenticatedLandingPath} replace />
+    } />
+      <Route path="/setup" element={<Navigate to="/" replace />} />
       <Route path="/collections/:slug" element={<StaffLayout><CollectionDetail /></StaffLayout>} />
       <Route path="/collections" element={<StaffLayout><CollectionsPage /></StaffLayout>} />
       <Route path="/events" element={<StaffLayout><EventsPage /></StaffLayout>} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/my-account" element={<PatronPortal />} />
     </Routes>
   );
 }

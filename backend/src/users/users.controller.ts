@@ -12,34 +12,29 @@ export class UsersController {
   // Public staff directory
   @Get('directory')
   findDirectory() {
-    return this.usersService.findDirectory();
+    return this.usersService.findPublicDirectory();
   }
 
   // My own profile (any logged in user)
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getMe(@Request() req: { user: { id: number } }) {
-    const user = await this.usersService.findById(req.user.id);
-    if (!user) return null;
-    // Strip password before returning
-    const { password, ...profile } = user;
-    return profile;
+  getMe(@Request() req: { user: { id: number } }) {
+    return this.usersService.getMe(req.user.id);
   }
 
   // Update my own profile
   @Patch('me')
   @UseGuards(JwtAuthGuard)
-  async updateMe(@Request() req: { user: { id: number } }, @Body() data: any) {
-    const { password, role, ...safeData } = data;
-    return this.usersService.update(req.user.id, safeData);
+  updateMe(@Request() req: { user: { id: number } }, @Body() data: any) {
+    return this.usersService.updateMe(req.user.id, data);
   }
 
   // Admin: list all users
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'staff')
   findAll() {
-    return this.usersService.findAll();
+    return this.usersService.findStaff(); // only returns staff, not patrons
   }
 
   // Admin: create user
@@ -47,7 +42,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   create(@Body() body: { username: string; password: string; role: UserRole }) {
-    return this.usersService.create(body.username, body.password, body.role);
+    return this.usersService.create(body);
   }
 
   // Admin: update any user
