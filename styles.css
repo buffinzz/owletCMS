@@ -14,7 +14,7 @@ body {
   margin: 0;
   font-family: "Segoe UI", sans-serif;
   color: var(--text);
-  background: var(--bg-dark);
+  background: var(--purple-deep);
   position: relative;
   overflow-x: hidden;
 }
