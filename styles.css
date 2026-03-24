@@ -34,38 +34,77 @@ body::before {
   z-index: -1;
 }
 
-/* HERO */
-.hero {
-  text-align: center;
-  padding: 100px 20px;
-  background: linear-gradient(
-    135deg,
-    rgba(76, 29, 149, 0.4),
-    rgba(20, 184, 166, 0.2)
-  );
-  border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+/* ── HERO ── */
+.owlet-hero {
+  background: linear-gradient(135deg, var(--purple-deep) 0%, var(--purple-mid) 60%, var(--teal) 100%);
+  padding: 5rem 2rem 4rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.logo {
-  width: 80px;
-  margin-bottom: 10px;
+.owlet-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(232, 130, 12, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(76, 201, 187, 0.2) 0%, transparent 50%);
+  pointer-events: none;
 }
 
-.hero h1 {
-  font-size: 3rem;
-  margin-bottom: 10px;
-  background: linear-gradient(
-    135deg,
-    var(--purple-mid),
-    var(--teal)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.owlet-hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
-.tagline {
-  color: var(--muted);
+.owlet-hero-text h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  color: var(--white);
+  line-height: 1.1;
+  margin-bottom: 1rem;
 }
+
+.owlet-hero-text h1 em {
+  color: var(--amber-light);
+  font-style: italic;
+}
+
+.owlet-hero-text p {
+  color: var(--purple-light);
+  font-size: 1.1rem;
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 480px;
+}
+
+.owlet-hero-mascot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10rem;
+  filter: drop-shadow(0 0 40px rgba(232, 130, 12, 0.4));
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.owlet-hero-mascot img {
+  width: 280px;
+  height: auto;
+  filter: drop-shadow(0 0 40px rgba(232, 130, 12, 0.4));
+  animation: float 6s ease-in-out infinite;
+}
+
 
 /* LAYOUT */
 main {
