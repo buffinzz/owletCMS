@@ -241,13 +241,9 @@ Ways to help:
 Owlet started as an idea inspired by the needs of a **small rural library looking to modernize its website**.
 
 If successful, the project could grow into a shared platform for community institutions everywhere to build **connected knowledge spaces**.
+
 ---
-<p align="center">
-  <img src="./images/tech-support.png" width="600" alt="Owlet Squad Tech Support">
-  <br>
-  <i>Actual footage of our dev team resolving tickets.</i>
-</p>
----
+
 ## Stack
 
 - NestJS backend
@@ -270,6 +266,13 @@ Start frontend:
 
 cd frontend
 npm run dev
+
+---
+<p align="center">
+  <img src="./images/tech-support.png" width="600" alt="Owlet Squad Tech Support">
+  <br>
+  <i>Actual footage of our dev team resolving tickets.</i>
+</p>
 ---
 ![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white)
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
