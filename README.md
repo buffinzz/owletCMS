@@ -190,9 +190,9 @@ Owlet is in **early development**.
 
 ### 🗺️ Roadmap
 
-- [ ] 👤 **Patron accounts** — self-registration, patron portal, reading history
-- [ ] 🔄 **Circulation & Holds** — checkout tracking, returns, hold queue, email reminders
-- [ ] 📖 **Native cataloging** — built-in catalog for little free libraries and small collections
+- [X] 👤 **Patron accounts** — self-registration, patron portal, reading history
+- [X] 🔄 **Circulation & Holds** — checkout tracking, returns, hold queue, email reminders
+- [X] 📖 **Native cataloging** — built-in catalog for little free libraries and small collections
 - [ ] 🚀 **Deployment** — one-command install, managed hosting guidance
 
 Early contributors are welcome.
