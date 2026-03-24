@@ -1,0 +1,18 @@
+{
+  "name": "owlet-plugin-patrons",
+  "version": "0.1.0",
+  "displayName": "Patron Accounts",
+  "description": "Community member accounts with self-registration, patron portal, checkouts and holds.",
+  "author": "Owlet Core Team",
+  "owletVersion": ">=0.1.0",
+  "permissions": ["users"],
+  "adminTabs": [
+    { "id": "patrons", "label": "🪪 Patrons", "roles": ["admin", "staff"] }
+  ],
+  "publicRoutes": ["/register", "/my-account"],
+  "settings": [
+    { "key": "patron_self_registration", "default": "true", "label": "Allow self-registration", "type": "boolean" },
+    { "key": "patron_require_approval", "default": "false", "label": "Require staff approval", "type": "boolean" },
+    { "key": "patron_card_prefix", "default": "LIB", "label": "Library card number prefix", "type": "string" }
+  ]
+}

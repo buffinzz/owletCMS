@@ -3,6 +3,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 export enum UserRole {
   ADMIN = 'admin',
   EDITOR = 'editor',
+  STAFF = 'staff',
+  PATRON = 'patron',
   VIEWER = 'viewer',
 }
 
@@ -18,7 +20,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.VIEWER })
+  @Column({ default: UserRole.VIEWER })
   role: UserRole;
 
   // ── Public directory ──

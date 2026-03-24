@@ -1,18 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from "../auth/AuthContext";
+import { useEffect, useState, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 import api from '../../api';
 import UsersTab from './UsersTab';
 import SettingsTab from './SettingsTab';
 import ImageUpload from '../components/ImageUpload';
 import MediaLibrary from '../media/MediaLibrary';
-import CatalogTab from '../../plugins/catalog/CatalogTab';
-import DigitalResourcesTab from '../../plugins/digital-resources/DigitalResourcesTab';
-import { Suspense } from 'react';
 import { usePluginTabs } from '../../plugins/usePlugins';
 import { getPluginTabComponent } from '../../plugins/PluginTabRegistry';
 import CollectionsTab from '../collections/CollectionsTab';
 import NavigationTab from '../navigation/NavigationTab';
+import { canEditContent, isAdminRole } from './roleUtils';
 
 type Tab = 'events' | 'pages' | 'users' | 'settings' | 'media' | 'collections' | string;
 type Mode = 'list' | 'create' | 'edit';
@@ -40,10 +38,16 @@ interface Page {
 }
 
 const emptyEvent = {
-  title: '', slug: '', description: '',
-  startDate: '', location: '', audience: '',
-  isPublished: true, imageUrl: '',
-  imageAlt: '', imageTitle: '',
+  title: '',
+  slug: '',
+  description: '',
+  startDate: '',
+  location: '',
+  audience: '',
+  isPublished: true,
+  imageUrl: '',
+  imageAlt: '',
+  imageTitle: '',
 };
 
 const emptyPage = { title: '', slug: '', content: '' };
@@ -64,7 +68,8 @@ export default function AdminDashboard() {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const authHeader = { headers: { Authorization: `Bearer ${user?.token}` } };
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = isAdminRole(user?.role);
+  const canManageCoreContent = canEditContent(user?.role);
 
   const { tabs: pluginTabs } = usePluginTabs(user?.token || '');
 
@@ -77,21 +82,28 @@ export default function AdminDashboard() {
   const fetchPages = () => api.get('/pages').then(res => setPages(res.data));
 
   const notify = (msg: string, isError = false) => {
-    if (isError) { setError(msg); setSuccess(''); }
-    else { setSuccess(msg); setError(''); }
-    setTimeout(() => { setSuccess(''); setError(''); }, 4000);
+    if (isError) {
+      setError(msg);
+      setSuccess('');
+    } else {
+      setSuccess(msg);
+      setError('');
+    }
+    setTimeout(() => {
+      setSuccess('');
+      setError('');
+    }, 4000);
   };
 
-  // ── Events CRUD ──
   const handleEventSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (editingId) {
         await api.patch(`/events/${editingId}`, eventForm, authHeader);
-        notify('Event updated! 🎉');
+        notify('Event updated!');
       } else {
         await api.post('/events', eventForm, authHeader);
-        notify('Event created! 🎉');
+        notify('Event created!');
       }
       setEventForm(emptyEvent);
       setMode('list');
@@ -103,22 +115,22 @@ export default function AdminDashboard() {
   };
 
   const handleEditEvent = (event: Event) => {
-  setEventForm({
-    title: event.title,
-    slug: event.slug,
-    description: event.description,
-    startDate: event.startDate.slice(0, 16),
-    location: event.location || '',
-    audience: event.audience || '',
-    isPublished: event.isPublished,
-    imageUrl: event.imageUrl || '',
-    imageAlt: event.imageAlt || '',
-    imageTitle: event.imageTitle || '',
-  });
-  setEditingId(event.id);
-  setMode('edit');
-  setTab('events');
-};
+    setEventForm({
+      title: event.title,
+      slug: event.slug,
+      description: event.description,
+      startDate: event.startDate.slice(0, 16),
+      location: event.location || '',
+      audience: event.audience || '',
+      isPublished: event.isPublished,
+      imageUrl: event.imageUrl || '',
+      imageAlt: event.imageAlt || '',
+      imageTitle: event.imageTitle || '',
+    });
+    setEditingId(event.id);
+    setMode('edit');
+    setTab('events');
+  };
 
   const handleDeleteEvent = async (id: number) => {
     if (!confirm('Delete this event? This cannot be undone.')) return;
@@ -131,16 +143,15 @@ export default function AdminDashboard() {
     }
   };
 
-  // ── Pages CRUD ──
   const handlePageSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (editingId) {
         await api.patch(`/pages/${editingId}`, pageForm, authHeader);
-        notify('Page updated! 🎉');
+        notify('Page updated!');
       } else {
         await api.post('/pages', pageForm, authHeader);
-        notify('Page created! 🎉');
+        notify('Page created!');
       }
       setPageForm(emptyPage);
       setMode('list');
@@ -183,11 +194,13 @@ export default function AdminDashboard() {
     setMode('list');
   };
 
+  const hiddenForNewButton = ['users', 'settings', 'media', 'collections', 'navigation', ...pluginTabs.map(t => t.id)];
+
   return (
     <div className="owlet-admin">
       <div className="owlet-admin-header">
         <div className="owlet-admin-title">
-          <span>🦉</span>
+          <span>Owlet</span>
           <div>
             <h2>Admin Dashboard</h2>
             <p>Signed in as <strong>{user?.username}</strong> · {user?.role}</p>
@@ -202,28 +215,31 @@ export default function AdminDashboard() {
       {error && <div className="owlet-alert owlet-alert-error">{error}</div>}
 
       <div className="owlet-admin-tabs">
-        {/* Core tabs */}
-        <button className={`owlet-tab ${tab === 'events' ? 'active' : ''}`}
-          onClick={() => { setTab('events'); setMode('list'); setEditingId(null); }}>
-          📅 Events
-        </button>
-        <button className={`owlet-tab ${tab === 'pages' ? 'active' : ''}`}
-          onClick={() => { setTab('pages'); setMode('list'); setEditingId(null); }}>
-          📄 Pages
-        </button>
-        
-        
-        <button className={`owlet-tab ${tab === 'media' ? 'active' : ''}`}
-          onClick={() => { setTab('media'); setMode('list'); }}>
-          📁 Media
-        </button>
+        {canManageCoreContent && (
+          <button className={`owlet-tab ${tab === 'events' ? 'active' : ''}`}
+            onClick={() => { setTab('events'); setMode('list'); setEditingId(null); }}>
+            Events
+          </button>
+        )}
+        {canManageCoreContent && (
+          <button className={`owlet-tab ${tab === 'pages' ? 'active' : ''}`}
+            onClick={() => { setTab('pages'); setMode('list'); setEditingId(null); }}>
+            Pages
+          </button>
+        )}
+        {isAdmin && (
+          <button className={`owlet-tab ${tab === 'media' ? 'active' : ''}`}
+            onClick={() => { setTab('media'); setMode('list'); }}>
+            Media
+          </button>
+        )}
+        {canManageCoreContent && (
+          <button className={`owlet-tab ${tab === 'collections' ? 'active' : ''}`}
+            onClick={() => { setTab('collections'); setMode('list'); }}>
+            Collections
+          </button>
+        )}
 
-        <button className={`owlet-tab ${tab === 'collections' ? 'active' : ''}`}
-          onClick={() => { setTab('collections'); setMode('list'); }}>
-          🗂️ Collections
-        </button>
-
-        {/* Plugin tabs — dynamic! */}
         {pluginTabs.map(pluginTab => (
           <button
             key={pluginTab.id}
@@ -233,71 +249,69 @@ export default function AdminDashboard() {
             {pluginTab.label}
           </button>
         ))}
+
         {isAdmin && (
           <button className={`owlet-tab ${tab === 'navigation' ? 'active' : ''}`}
-          onClick={() => { setTab('navigation'); setMode('list'); }}>
-          🧭 Navigation
-        </button>
+            onClick={() => { setTab('navigation'); setMode('list'); }}>
+            Navigation
+          </button>
         )}
         {isAdmin && (
           <button className={`owlet-tab ${tab === 'users' ? 'active' : ''}`}
             onClick={() => { setTab('users'); setMode('list'); setEditingId(null); }}>
-            👥 Users
+            Users
           </button>
         )}
         {isAdmin && (
           <button className={`owlet-tab ${tab === 'settings' ? 'active' : ''}`}
             onClick={() => { setTab('settings'); setMode('list'); }}>
-            ⚙️ Settings
+            Settings
           </button>
         )}
 
-        {/* New button — hide for non-content tabs */}
-        {!['users', 'settings', 'media', 'collections', 'navigation', ...pluginTabs.map(t => t.id)].includes(tab) && (
+        {canManageCoreContent && !hiddenForNewButton.includes(tab) && (
           <button className="owlet-btn owlet-btn-primary owlet-btn-new" onClick={handleNew}>
             + New {tab === 'events' ? 'Event' : 'Page'}
           </button>
         )}
       </div>
 
-      {/* ── USERS TAB ── */}
       {tab === 'users' && <UsersTab />}
       {tab === 'settings' && <SettingsTab />}
       {tab === 'media' && <MediaLibrary />}
       {tab === 'collections' && <CollectionsTab />}
       {tab === 'navigation' && <NavigationTab />}
-      {/* Plugin tab content — dynamic! */}
+
       {pluginTabs.map(pluginTab => {
         if (tab !== pluginTab.id) return null;
         const TabComponent = getPluginTabComponent(pluginTab.id);
-        if (!TabComponent) return (
-          <div key={pluginTab.id} className="owlet-empty">
-            <p>Component for {pluginTab.label} not registered in frontend.</p>
-          </div>
-        );
+        if (!TabComponent) {
+          return (
+            <div key={pluginTab.id} className="owlet-empty">
+              <p>Component for {pluginTab.label} is not registered in the frontend.</p>
+            </div>
+          );
+        }
         return (
-          <Suspense key={pluginTab.id} fallback={
-            <div className="owlet-loading"><span /><span /><span /></div>
-          }>
+          <Suspense key={pluginTab.id} fallback={<div className="owlet-loading"><span /><span /><span /></div>}>
             <TabComponent />
           </Suspense>
         );
       })}
-      
-      {/* ── LIST: Events ── */}
+
       {mode === 'list' && tab === 'events' && (
         <div className="owlet-admin-list">
           {events.length === 0
-            ? <div className="owlet-empty"><p>No events yet — click + New Event to add one.</p></div>
+            ? <div className="owlet-empty"><p>No events yet. Click + New Event to add one.</p></div>
             : events.map(event => (
               <div key={event.id} className="owlet-admin-item">
                 <div className="owlet-admin-item-info">
                   <h3>{event.title}</h3>
-                  <p>📅 {new Date(event.startDate).toLocaleDateString()}{event.location && ` · 📍 ${event.location}`}</p>
+                  <p>{new Date(event.startDate).toLocaleDateString()}{event.location && ` · ${event.location}`}</p>
                 </div>
                 <div className="owlet-admin-item-actions">
-                  <button className="owlet-btn-action owlet-btn-edit" onClick={() => handleEditEvent(event)}>✏️ Edit</button>
-                  {isAdmin && <button className="owlet-btn-action owlet-btn-delete" onClick={() => handleDeleteEvent(event.id)}>🗑️ Delete</button>}
+                  <button className="owlet-btn-action owlet-btn-edit" onClick={() => handleEditEvent(event)}>Edit</button>
+                  {isAdmin && <button className="owlet-btn-action owlet-btn-delete" onClick={() => handleDeleteEvent(event.id)}>Delete</button>}
                 </div>
               </div>
             ))
@@ -305,11 +319,10 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── LIST: Pages ── */}
       {mode === 'list' && tab === 'pages' && (
         <div className="owlet-admin-list">
           {pages.length === 0
-            ? <div className="owlet-empty"><p>No pages yet — click + New Page to add one.</p></div>
+            ? <div className="owlet-empty"><p>No pages yet. Click + New Page to add one.</p></div>
             : pages.map(page => (
               <div key={page.id} className="owlet-admin-item">
                 <div className="owlet-admin-item-info">
@@ -317,8 +330,8 @@ export default function AdminDashboard() {
                   <p>/{page.slug}</p>
                 </div>
                 <div className="owlet-admin-item-actions">
-                  <button className="owlet-btn-action owlet-btn-edit" onClick={() => handleEditPage(page)}>✏️ Edit</button>
-                  {isAdmin && <button className="owlet-btn-action owlet-btn-delete" onClick={() => handleDeletePage(page.id)}>🗑️ Delete</button>}
+                  <button className="owlet-btn-action owlet-btn-edit" onClick={() => handleEditPage(page)}>Edit</button>
+                  {isAdmin && <button className="owlet-btn-action owlet-btn-delete" onClick={() => handleDeletePage(page.id)}>Delete</button>}
                 </div>
               </div>
             ))
@@ -326,10 +339,9 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── FORM: Events ── */}
       {(mode === 'create' || mode === 'edit') && tab === 'events' && (
         <form className="owlet-admin-form" onSubmit={handleEventSubmit}>
-          <h3 className="owlet-form-title">{editingId ? '✏️ Edit Event' : '📅 New Event'}</h3>
+          <h3 className="owlet-form-title">{editingId ? 'Edit Event' : 'New Event'}</h3>
           <div className="owlet-field-row">
             <div className="owlet-field">
               <label>Title</label>
@@ -347,11 +359,11 @@ export default function AdminDashboard() {
               currentUrl={eventForm.imageUrl}
               currentAlt={eventForm.imageAlt}
               currentTitle={eventForm.imageTitle}
-              onUpload={(url, alt, title) => setEventForm({ 
-                ...eventForm, 
-                imageUrl: url, 
-                imageAlt: alt || '', 
-                imageTitle: title || '' 
+              onUpload={(url, alt, title) => setEventForm({
+                ...eventForm,
+                imageUrl: url,
+                imageAlt: alt || '',
+                imageTitle: title || '',
               })}
               label="Event Image / Flyer"
               size="large"
@@ -374,17 +386,16 @@ export default function AdminDashboard() {
           </div>
           <div className="owlet-form-actions">
             <button type="submit" className="owlet-btn owlet-btn-primary" style={{ width: 'auto' }}>
-              {editingId ? 'Save Changes' : 'Create Event'} 🗓️
+              {editingId ? 'Save Changes' : 'Create Event'}
             </button>
             <button type="button" className="owlet-btn owlet-btn-ghost" onClick={handleCancel}>Cancel</button>
           </div>
         </form>
       )}
 
-      {/* ── FORM: Pages ── */}
       {(mode === 'create' || mode === 'edit') && tab === 'pages' && (
         <form className="owlet-admin-form" onSubmit={handlePageSubmit}>
-          <h3 className="owlet-form-title">{editingId ? '✏️ Edit Page' : '📄 New Page'}</h3>
+          <h3 className="owlet-form-title">{editingId ? 'Edit Page' : 'New Page'}</h3>
           <div className="owlet-field-row">
             <div className="owlet-field">
               <label>Title</label>
@@ -401,7 +412,7 @@ export default function AdminDashboard() {
           </div>
           <div className="owlet-form-actions">
             <button type="submit" className="owlet-btn owlet-btn-primary" style={{ width: 'auto' }}>
-              {editingId ? 'Save Changes' : 'Create Page'} 📄
+              {editingId ? 'Save Changes' : 'Create Page'}
             </button>
             <button type="button" className="owlet-btn owlet-btn-ghost" onClick={handleCancel}>Cancel</button>
           </div>

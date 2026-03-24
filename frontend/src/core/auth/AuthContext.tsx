@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
+import { canEditContent } from './roleUtils';
 
 interface AuthUser {
   username: string;
@@ -31,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       isAuthenticated: !!user,
-      canEdit: user?.role === 'admin' || user?.role === 'editor',
+      canEdit: canEditContent(user?.role),
     }}>
       {children}
     </AuthContext.Provider>

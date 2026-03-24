@@ -1,4 +1,5 @@
-import { lazy, ComponentType } from 'react';
+import { lazy } from 'react';
+import type { ComponentType } from 'react';
 
 // Registry maps plugin tab IDs to their React components
 // When a new plugin is added, register its component here
@@ -14,9 +15,17 @@ try {
   const DigitalResourcesTab = lazy(() => import('./digital-resources/DigitalResourcesTab'));
   tabComponents['digital-resources'] = DigitalResourcesTab;
 } catch { }
+
 try {
   const CirculationTab = lazy(() => import('./native-catalog/CirculationTab'));
   const HoldsTab = lazy(() => import('./native-catalog/HoldsTab'));
+  tabComponents['circulation'] = CirculationTab;
+  tabComponents['holds'] = HoldsTab;
+} catch { }
+
+try {
+  const PatronsTab = lazy(() => import('./patrons/PatronsTab'));
+  tabComponents['patrons'] = PatronsTab;
 } catch { }
 
 export function registerPluginTab(id: string, component: ComponentType) {

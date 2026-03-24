@@ -4,7 +4,6 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UsersService } from '../users/users.service';
-import { UserRole } from '../users/user.entity';
 
 @Controller('settings')
 export class SettingsController {
@@ -15,8 +14,19 @@ export class SettingsController {
 
   // Public — frontend uses this to display library info
   @Get('public')
-  getPublic() {
-    return this.settingsService.getPublicSettings();
+  async getPublic() {
+    const keys = [
+      'library_name', 'library_tagline', 'library_email',
+      'library_phone', 'library_address', 'library_city',
+      'library_logo_url', 'library_logo_alt', 'theme_primary_colour',
+      'patron_self_registration', 'patron_require_approval', 'patron_card_prefix',
+    ];
+    const settings: Record<string, string> = {};
+    for (const key of keys) {
+      const value = await this.settingsService.get(key);
+      if (value !== null) settings[key] = value;
+    }
+    return settings;
   }
 
   // Check if setup is complete — used by frontend guard
@@ -38,13 +48,12 @@ export class SettingsController {
     if (already) {
       return { error: 'Setup already complete.' };
     }
-    await this.usersService.create(
-        body.adminUsername,
-        body.adminPassword,
-        UserRole.ADMIN,
+    await this.usersService.createFirstAdmin(
+      body.adminUsername,
+      body.adminPassword,
     );
+
     await this.settingsService.completeSetup(body.settings);
-    
     return { success: true };
   }
 
