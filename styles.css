@@ -116,7 +116,9 @@ main {
   margin: auto;
   padding: 20px;
 }
-
+main h1 {
+  text-align: center;
+}
 /* CHAPTERS */
 .chapter {
   margin-bottom: 80px;
