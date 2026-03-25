@@ -3,6 +3,8 @@ import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuth } from './core/auth/AuthContext';
 import { useIsPluginEnabled } from './plugins/usePlugins';
 import api from './api';
+import ExhibitsPage from './plugins/exhibits/ExhibitsPage';
+import ExhibitDetail from './plugins/exhibits/ExhibitDetail';
 
 // Core layouts
 import PublicLayout from './core/layouts/PublicLayout';
@@ -23,12 +25,14 @@ const RegisterPage = lazy(() => import('./plugins/patrons/RegisterPage'));
 const PatronPortal = lazy(() => import('./plugins/patrons/PatronPortal'));
 const ItemDetailPage = lazy(() => import('./plugins/catalog/ItemDetailPage'));
 
+
 function App() {
   const { isAuthenticated, canEdit, user } = useAuth();
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null);
 
   const patronsEnabled = useIsPluginEnabled('owlet-plugin-patrons');
   const catalogEnabled = useIsPluginEnabled('owlet-plugin-catalog');
+  const exhibitsEnabled = useIsPluginEnabled('owlet-plugin-exhibits');
 
   useEffect(() => {
     api.get('/settings/setup-status').then(res => {
@@ -102,6 +106,12 @@ function App() {
             </Suspense>
           </StaffLayout>
         } />
+      )}
+      {exhibitsEnabled && (
+        <Route path="/exhibits" element={<StaffLayout><ExhibitsPage /></StaffLayout>} />
+      )}
+      {exhibitsEnabled && (
+        <Route path="/exhibits/:slug" element={<StaffLayout><ExhibitDetail /></StaffLayout>} />
       )}
     </Routes>
   );

@@ -9,6 +9,8 @@ interface MediaItem {
   originalName: string;
   mimetype: string;
   size: number;
+  title?: string;
+  description?: string;
   alt?: string;
 }
 
@@ -17,6 +19,7 @@ interface ImageUploadProps {
   currentAlt?: string;
   currentTitle?: string;
   onUpload: (url: string, alt?: string, title?: string) => void;
+  onSelectMedia?: (item: MediaItem) => void;
   label?: string;
   size?: 'small' | 'medium' | 'large';
   showAlt?: boolean;
@@ -28,6 +31,7 @@ export default function ImageUpload({
   currentAlt,
   currentTitle,
   onUpload,
+  onSelectMedia,
   label = 'Photo',
   size = 'medium',
   showAlt = true,
@@ -78,6 +82,7 @@ export default function ImageUpload({
     // Pre-fill alt from media library if available and alt is empty
     if (item.alt && !alt) setAlt(item.alt);
     onUpload(url, alt || item.alt, title);
+    onSelectMedia?.(item);
     setShowPicker(false);
   };
 

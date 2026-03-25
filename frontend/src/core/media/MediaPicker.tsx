@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import MediaLibrary from './MediaLibrary';
+import type { FilterType } from './MediaLibrary';
 
 interface MediaItem {
   id: number;
@@ -13,9 +14,16 @@ interface MediaItem {
 interface MediaPickerProps {
   onSelect: (url: string, item: MediaItem) => void;
   onClose: () => void;
+  initialFilter?: FilterType;
+  lockedFilter?: boolean;
 }
 
-export default function MediaPicker({ onSelect, onClose }: MediaPickerProps) {
+export default function MediaPicker({
+  onSelect,
+  onClose,
+  initialFilter = 'all',
+  lockedFilter = false,
+}: MediaPickerProps) {
   const [selected, setSelected] = useState<{ url: string; item: MediaItem } | null>(null);
 
   const handleSelect = (url: string, item: MediaItem) => {
@@ -41,6 +49,8 @@ export default function MediaPicker({ onSelect, onClose }: MediaPickerProps) {
           <MediaLibrary
             pickerMode
             onSelect={handleSelect}
+            initialFilter={initialFilter}
+            lockedFilter={lockedFilter}
           />
         </div>
 

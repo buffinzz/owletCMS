@@ -1,0 +1,14 @@
+{
+  "name": "owlet-plugin-exhibits",
+  "version": "0.1.0",
+  "displayName": "Exhibits",
+  "description": "Digital and physical exhibit management with panels, timelines, maps and media.",
+  "author": "Owlet Core Team",
+  "owletVersion": ">=0.1.0",
+  "permissions": ["media"],
+  "adminTabs": [
+    { "id": "exhibits", "label": "🖼️ Exhibits", "roles": ["admin", "editor"] }
+  ],
+  "publicRoutes": ["/exhibits", "/exhibits/:slug"],
+  "settings": []
+}

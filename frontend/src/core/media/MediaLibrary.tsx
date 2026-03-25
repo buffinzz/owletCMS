@@ -20,11 +20,13 @@ interface MediaItem {
 }
 
 type ViewMode = 'grid' | 'list';
-type FilterType = 'all' | 'image' | 'document' | 'audio' | 'video';
+export type FilterType = 'all' | 'image' | 'document' | 'audio' | 'video';
 
 interface MediaLibraryProps {
   pickerMode?: boolean;
   onSelect?: (url: string, item: MediaItem) => void;
+  initialFilter?: FilterType;
+  lockedFilter?: boolean;
 }
 
 function formatSize(bytes: number): string {
@@ -54,12 +56,17 @@ function getFileUrl(filename: string): string {
   return `http://localhost:3000/media/file/${filename}`;
 }
 
-export default function MediaLibrary({ pickerMode = false, onSelect }: MediaLibraryProps) {
+export default function MediaLibrary({
+  pickerMode = false,
+  onSelect,
+  initialFilter = 'all',
+  lockedFilter = false,
+}: MediaLibraryProps) {
   const { user } = useAuth();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [filter, setFilter] = useState<FilterType>('all');
+  const [filter, setFilter] = useState<FilterType>(initialFilter);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<MediaItem | null>(null);
   const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
@@ -75,6 +82,7 @@ export default function MediaLibrary({ pickerMode = false, onSelect }: MediaLibr
   const authHeader = { headers: { Authorization: `Bearer ${user?.token}` } };
 
   useEffect(() => { fetchMedia(); }, []);
+  useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -220,17 +228,19 @@ export default function MediaLibrary({ pickerMode = false, onSelect }: MediaLibr
           onChange={e => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 200 }}
         />
-        <div className="owlet-media-filters">
-          {FILTERS.map(f => (
-            <button
-              key={f.value}
-              className={`owlet-media-filter ${filter === f.value ? 'active' : ''}`}
-              onClick={() => setFilter(f.value)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        {!lockedFilter && (
+          <div className="owlet-media-filters">
+            {FILTERS.map(f => (
+              <button
+                key={f.value}
+                className={`owlet-media-filter ${filter === f.value ? 'active' : ''}`}
+                onClick={() => setFilter(f.value)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="owlet-media-toolbar-right">
           <button
             className={`owlet-media-view-btn ${viewMode === 'grid' ? 'active' : ''}`}

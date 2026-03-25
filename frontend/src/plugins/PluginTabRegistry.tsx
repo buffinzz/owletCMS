@@ -28,6 +28,11 @@ try {
   tabComponents['patrons'] = PatronsTab;
 } catch { }
 
+try {
+  const ExhibitsTab = lazy(() => import('./exhibits/ExhibitsTab'));
+  tabComponents['exhibits'] = ExhibitsTab;
+} catch { }
+
 export function registerPluginTab(id: string, component: ComponentType) {
   tabComponents[id] = component;
 }

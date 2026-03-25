@@ -11,6 +11,7 @@ import FeaturedCollections from '../collections/FeaturedCollections';
 import { lazy, Suspense } from 'react';
 const NewArrivals = lazy(() => import('../../plugins/catalog/NewArrivals'));
 const DigitalResources = lazy(() => import('../../plugins/digital-resources/DigitalResources'));
+const FeaturedExhibits = lazy(() => import('../../plugins/exhibits/FeaturedExhibits'));
 
 export default function PublicLayout() {
   const { settings } = useSettings();
@@ -63,6 +64,12 @@ export default function PublicLayout() {
         )}
 
         <EventsView />
+        {!pluginsLoading && hasPlugin('owlet-plugin-exhibits') && (
+          <Suspense fallback={null}>
+            <FeaturedExhibits />
+          </Suspense>
+        )}
+
         <PageView />
       </main>
 
