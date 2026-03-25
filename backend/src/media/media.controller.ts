@@ -86,4 +86,19 @@ export class MediaController {
   async reindexAll() {
     return this.mediaService.reindexAll();
   }
+  @Post('external')
+  @UseGuards(JwtAuthGuard)
+  async addExternal(
+    @Body() body: {
+      url: string;
+      title?: string;
+      alt?: string;
+      description?: string;
+      mimetype?: string;
+      tags?: string[];
+    },
+    @Request() req: { user: { id: number } },
+  ) {
+    return this.mediaService.saveExternal(body, req.user.id);
+  }
 }

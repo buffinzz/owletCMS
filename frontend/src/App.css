@@ -1376,6 +1376,28 @@ body {
   color: var(--white);
   border-color: var(--purple-deep);
 }
+/* ── EXTERNAL URL FORM ── */
+.owlet-external-url-form {
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  animation: fadeIn 0.15s ease;
+}
+
+/* ── EXTERNAL BADGE ── */
+.owlet-media-external-badge {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 0.7rem;
+  background: rgba(255,255,255,0.9);
+  border-radius: 4px;
+  padding: 1px 3px;
+  line-height: 1;
+}
+
 
 /* Body layout */
 .owlet-media-body {

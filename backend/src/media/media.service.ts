@@ -83,7 +83,37 @@ export class MediaService {
       .orderBy('media.createdAt', 'DESC')
       .getMany();
   }
+  async saveExternal(data: {
+    url: string;
+    title?: string;
+    alt?: string;
+    description?: string;
+    mimetype?: string;
+    tags?: string[];
+  }, uploadedBy: number): Promise<Media> {
+    const media = this.mediaRepository.create({
+      filename: 'external',
+      originalName: data.title || data.url,
+      mimetype: data.mimetype || this.guessMimetype(data.url),
+      size: 0,
+      url: data.url,
+      title: data.title,
+      alt: data.alt,
+      description: data.description,
+      tags: data.tags,
+      isIndexed: false,
+      uploadedBy,
+    });
+    return this.mediaRepository.save(media);
+  }
 
+  private guessMimetype(url: string): string {
+    if (/youtube\.com|youtu\.be|vimeo\.com/.test(url)) return 'video/external';
+    if (/\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(url)) return 'image/external';
+    if (/\.(mp3|wav|ogg)(\?|$)/i.test(url)) return 'audio/external';
+    if (/\.(pdf)(\?|$)/i.test(url)) return 'application/pdf';
+    return 'text/uri-list';
+  }
   async update(id: number, data: Partial<Media>): Promise<Media | null> {
     await this.mediaRepository.update(id, data);
     return this.mediaRepository.findOneBy({ id });

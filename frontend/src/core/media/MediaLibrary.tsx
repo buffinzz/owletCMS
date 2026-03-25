@@ -20,53 +20,70 @@ interface MediaItem {
 }
 
 type ViewMode = 'grid' | 'list';
-export type FilterType = 'all' | 'image' | 'document' | 'audio' | 'video';
+type FilterType = 'all' | 'image' | 'document' | 'audio' | 'video' | 'external';
 
 interface MediaLibraryProps {
   pickerMode?: boolean;
   onSelect?: (url: string, item: MediaItem) => void;
-  initialFilter?: FilterType;
-  lockedFilter?: boolean;
 }
 
 function formatSize(bytes: number): string {
+  if (bytes === 0) return 'External';
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function getFileType(mimetype: string): FilterType {
-  if (mimetype.startsWith('image/')) return 'image';
-  if (mimetype.startsWith('audio/')) return 'audio';
-  if (mimetype.startsWith('video/')) return 'video';
+function isExternal(item: MediaItem): boolean {
+  return item.filename === 'external' || !!item.url;
+}
+
+function getEffectiveUrl(item: MediaItem): string {
+  if (item.url) return item.url;
+  return `http://localhost:3000/media/file/${item.filename}`;
+}
+
+function getFileType(item: MediaItem): FilterType {
+  if (isExternal(item)) return 'external';
+  if (item.mimetype.startsWith('image/')) return 'image';
+  if (item.mimetype.startsWith('audio/')) return 'audio';
+  if (item.mimetype.startsWith('video/')) return 'video';
   return 'document';
 }
 
-function getFileIcon(mimetype: string): string {
-  if (mimetype.startsWith('image/')) return '🖼️';
-  if (mimetype.startsWith('audio/')) return '🎵';
-  if (mimetype.startsWith('video/')) return '🎬';
-  if (mimetype.includes('pdf')) return '📄';
-  if (mimetype.includes('word')) return '📝';
-  if (mimetype.includes('excel') || mimetype.includes('spreadsheet')) return '📊';
+function getFileIcon(item: MediaItem): string {
+  if (item.mimetype.startsWith('video/') || /youtube|vimeo/.test(item.url || '')) return '🎬';
+  if (item.mimetype.startsWith('audio/')) return '🎵';
+  if (item.mimetype.startsWith('image/')) return '🖼️';
+  if (item.mimetype.includes('pdf')) return '📄';
+  if (item.mimetype.includes('word')) return '📝';
+  if (item.url) return '🔗';
   return '📁';
 }
 
-function getFileUrl(filename: string): string {
-  return `http://localhost:3000/media/file/${filename}`;
+function isImageItem(item: MediaItem): boolean {
+  if (item.url) return item.mimetype.startsWith('image/');
+  return item.mimetype.startsWith('image/');
 }
 
-export default function MediaLibrary({
-  pickerMode = false,
-  onSelect,
-  initialFilter = 'all',
-  lockedFilter = false,
-}: MediaLibraryProps) {
+const EXTERNAL_TYPES = [
+  { value: 'video/external', label: '🎬 Video (YouTube, Vimeo)' },
+  { value: 'image/external', label: '🖼️ External Image' },
+  { value: 'audio/external', label: '🎵 Audio Stream' },
+  { value: 'application/pdf', label: '📄 PDF (external)' },
+  { value: 'text/uri-list', label: '🔗 General URL' },
+];
+
+const emptyExternalForm = {
+  url: '', title: '', alt: '', description: '', mimetype: 'text/uri-list',
+};
+
+export default function MediaLibrary({ pickerMode = false, onSelect }: MediaLibraryProps) {
   const { user } = useAuth();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [filter, setFilter] = useState<FilterType>(initialFilter);
+  const [filter, setFilter] = useState<FilterType>('all');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<MediaItem | null>(null);
   const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
@@ -76,13 +93,18 @@ export default function MediaLibrary({
   const [uploading, setUploading] = useState(false);
   const [reindexing, setReindexing] = useState<number | null>(null);
   const [copied, setCopied] = useState<number | null>(null);
+
+  // External URL form
+  const [showExternalForm, setShowExternalForm] = useState(false);
+  const [externalForm, setExternalForm] = useState(emptyExternalForm);
+  const [savingExternal, setSavingExternal] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const authHeader = { headers: { Authorization: `Bearer ${user?.token}` } };
 
   useEffect(() => { fetchMedia(); }, []);
-  useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -128,16 +150,33 @@ export default function MediaLibrary({
     }
   };
 
+  const handleAddExternal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!externalForm.url.trim()) return;
+    setSavingExternal(true);
+    try {
+      await api.post('/media/external', externalForm, authHeader);
+      notify('External URL added! 🔗');
+      setExternalForm(emptyExternalForm);
+      setShowExternalForm(false);
+      fetchMedia(search);
+    } catch {
+      notify('Failed to add external URL.', true);
+    } finally {
+      setSavingExternal(false);
+    }
+  };
+
   const handleDelete = async (item: MediaItem) => {
-    if (!confirm(`Delete "${item.originalName}"? This cannot be undone.`)) return;
+    if (!confirm(`Delete "${item.title || item.originalName}"? This cannot be undone.`)) return;
     try {
       await api.delete(`/media/${item.id}`, authHeader);
-      notify('File deleted.');
+      notify('Deleted.');
       if (selected?.id === item.id) setSelected(null);
       if (editingItem?.id === item.id) setEditingItem(null);
       fetchMedia(search);
     } catch {
-      notify('Failed to delete file.', true);
+      notify('Failed to delete.', true);
     }
   };
 
@@ -161,6 +200,7 @@ export default function MediaLibrary({
   };
 
   const handleReindex = async (item: MediaItem) => {
+    if (isExternal(item)) return;
     setReindexing(item.id);
     try {
       const res = await api.post(`/media/${item.id}/reindex`, {}, authHeader);
@@ -175,15 +215,14 @@ export default function MediaLibrary({
   };
 
   const handleCopyUrl = (item: MediaItem) => {
-    const url = item.url || getFileUrl(item.filename);
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(getEffectiveUrl(item));
     setCopied(item.id);
     setTimeout(() => setCopied(null), 2000);
   };
 
   const handleSelect = (item: MediaItem) => {
     if (pickerMode && onSelect) {
-      onSelect(item.url || getFileUrl(item.filename), item);
+      onSelect(getEffectiveUrl(item), item);
     } else {
       setSelected(selected?.id === item.id ? null : item);
       setEditingItem(null);
@@ -206,7 +245,7 @@ export default function MediaLibrary({
 
   const filteredItems = items.filter(item => {
     if (filter === 'all') return true;
-    return getFileType(item.mimetype) === filter;
+    return getFileType(item) === filter;
   });
 
   const FILTERS: { label: string; value: FilterType }[] = [
@@ -215,6 +254,7 @@ export default function MediaLibrary({
     { label: '📄 Documents', value: 'document' },
     { label: '🎵 Audio', value: 'audio' },
     { label: '🎬 Video', value: 'video' },
+    { label: '🔗 External', value: 'external' },
   ];
 
   return (
@@ -228,19 +268,17 @@ export default function MediaLibrary({
           onChange={e => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 200 }}
         />
-        {!lockedFilter && (
-          <div className="owlet-media-filters">
-            {FILTERS.map(f => (
-              <button
-                key={f.value}
-                className={`owlet-media-filter ${filter === f.value ? 'active' : ''}`}
-                onClick={() => setFilter(f.value)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="owlet-media-filters">
+          {FILTERS.map(f => (
+            <button
+              key={f.value}
+              className={`owlet-media-filter ${filter === f.value ? 'active' : ''}`}
+              onClick={() => setFilter(f.value)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
         <div className="owlet-media-toolbar-right">
           <button
             className={`owlet-media-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
@@ -248,6 +286,13 @@ export default function MediaLibrary({
           <button
             className={`owlet-media-view-btn ${viewMode === 'list' ? 'active' : ''}`}
             onClick={() => setViewMode('list')} title="List view">☰</button>
+          <button
+            className="owlet-btn owlet-btn-ghost"
+            style={{ width: 'auto' }}
+            onClick={() => { setShowExternalForm(!showExternalForm); }}
+          >
+            🔗 Add URL
+          </button>
           <button
             className="owlet-btn owlet-btn-primary owlet-btn-new"
             onClick={() => inputRef.current?.click()}
@@ -259,25 +304,102 @@ export default function MediaLibrary({
         </div>
       </div>
 
+      {/* External URL form */}
+      {showExternalForm && (
+        <form
+          className="owlet-external-url-form"
+          onSubmit={handleAddExternal}
+        >
+          <h4 style={{ fontFamily: 'Playfair Display, serif', color: 'var(--purple-deep)', marginBottom: '0.75rem' }}>
+            🔗 Add External Media URL
+          </h4>
+          <div className="owlet-field-row">
+            <div className="owlet-field" style={{ flex: 2 }}>
+              <label>URL *</label>
+              <input
+                value={externalForm.url}
+                onChange={e => setExternalForm({ ...externalForm, url: e.target.value })}
+                placeholder="https://youtube.com/watch?v=... or https://example.com/image.jpg"
+                required
+                autoFocus
+              />
+            </div>
+            <div className="owlet-field">
+              <label>Type</label>
+              <select
+                className="owlet-select"
+                value={externalForm.mimetype}
+                onChange={e => setExternalForm({ ...externalForm, mimetype: e.target.value })}
+              >
+                {EXTERNAL_TYPES.map(t => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="owlet-field-row">
+            <div className="owlet-field">
+              <label>Title</label>
+              <input
+                value={externalForm.title}
+                onChange={e => setExternalForm({ ...externalForm, title: e.target.value })}
+                placeholder="Display name"
+              />
+            </div>
+            <div className="owlet-field">
+              <label>Alt Text</label>
+              <input
+                value={externalForm.alt}
+                onChange={e => setExternalForm({ ...externalForm, alt: e.target.value })}
+                placeholder="Accessible description"
+              />
+            </div>
+          </div>
+          <div className="owlet-field">
+            <label>Description</label>
+            <input
+              value={externalForm.description}
+              onChange={e => setExternalForm({ ...externalForm, description: e.target.value })}
+              placeholder="Optional description"
+            />
+          </div>
+          <div className="owlet-form-actions">
+            <button
+              type="submit"
+              className="owlet-btn owlet-btn-primary"
+              style={{ width: 'auto' }}
+              disabled={savingExternal}
+            >
+              {savingExternal ? 'Adding...' : 'Add URL 🔗'}
+            </button>
+            <button
+              type="button"
+              className="owlet-btn owlet-btn-ghost"
+              onClick={() => { setShowExternalForm(false); setExternalForm(emptyExternalForm); }}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
       {success && <div className="owlet-alert owlet-alert-success">{success}</div>}
       {error && <div className="owlet-alert owlet-alert-error">{error}</div>}
 
       {search && (
         <p style={{ fontSize: '0.8rem', color: 'var(--ink-light)', marginBottom: '0.5rem' }}>
           {filteredItems.length} result{filteredItems.length !== 1 ? 's' : ''} for "{search}"
-          {filteredItems.some(i => i.isIndexed) && ' (includes content search)'}
         </p>
       )}
 
       <div className="owlet-media-body">
-        {/* Main content */}
         <div className="owlet-media-main">
           {loading ? (
             <div className="owlet-loading"><span /><span /><span /></div>
           ) : filteredItems.length === 0 ? (
             <div className="owlet-empty">
               <div className="owlet-empty-icon">📁</div>
-              <p>{search ? `No files matching "${search}"` : 'No files yet — click Upload to add some.'}</p>
+              <p>{search ? `No files matching "${search}"` : 'No files yet.'}</p>
             </div>
           ) : viewMode === 'grid' ? (
             <div className="owlet-media-grid">
@@ -288,17 +410,18 @@ export default function MediaLibrary({
                   onClick={() => handleSelect(item)}
                 >
                   <div className="owlet-media-thumb">
-                    {getFileType(item.mimetype) === 'image' ? (
-                      <img src={getFileUrl(item.filename)} alt={item.alt || item.originalName} />
+                    {isImageItem(item) ? (
+                      <img src={getEffectiveUrl(item)} alt={item.alt || item.originalName} />
                     ) : (
-                      <div className="owlet-media-icon">{getFileIcon(item.mimetype)}</div>
+                      <div className="owlet-media-icon">{getFileIcon(item)}</div>
                     )}
-                    {item.isIndexed && (
+                    {isExternal(item) && (
+                      <span className="owlet-media-external-badge" title="External URL">🔗</span>
+                    )}
+                    {item.isIndexed && !isExternal(item) && (
                       <span className="owlet-media-indexed-badge" title="Content indexed">🔍</span>
                     )}
-                    {pickerMode && (
-                      <div className="owlet-media-select-overlay">Select</div>
-                    )}
+                    {pickerMode && <div className="owlet-media-select-overlay">Select</div>}
                   </div>
                   <p className="owlet-media-name">{item.title || item.originalName}</p>
                   <p className="owlet-media-meta">{formatSize(item.size)}</p>
@@ -315,34 +438,26 @@ export default function MediaLibrary({
                   style={{ cursor: 'pointer' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{getFileIcon(item.mimetype)}</span>
+                    <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{getFileIcon(item)}</span>
                     <div className="owlet-admin-item-info" style={{ flex: 1, minWidth: 0 }}>
                       <h3>
                         {item.title || item.originalName}
-                        {item.isIndexed && <span className="owlet-media-indexed-badge" title="Content indexed"> 🔍</span>}
+                        {isExternal(item) && <span className="owlet-catalog-source" style={{ marginLeft: '0.4rem' }}>external</span>}
+                        {item.isIndexed && !isExternal(item) && <span className="owlet-media-indexed-badge"> 🔍</span>}
                       </h3>
-                      <p>{formatSize(item.size)} · {item.mimetype} · {new Date(item.createdAt).toLocaleDateString()}</p>
-                      {item.tags && item.tags.length > 0 && (
-                        <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
-                          {item.tags.map(tag => (
-                            <span key={tag} className="owlet-book-subject">{tag}</span>
-                          ))}
-                        </div>
-                      )}
+                      <p style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {isExternal(item) ? item.url : `${formatSize(item.size)} · ${item.mimetype}`}
+                      </p>
                     </div>
                   </div>
                   <div className="owlet-admin-item-actions">
-                    <button
-                      className="owlet-btn-action owlet-btn-edit"
-                      onClick={e => { e.stopPropagation(); handleCopyUrl(item); }}
-                    >
+                    <button className="owlet-btn-action owlet-btn-edit"
+                      onClick={e => { e.stopPropagation(); handleCopyUrl(item); }}>
                       {copied === item.id ? '✓ Copied!' : '🔗 Copy URL'}
                     </button>
-                    <button
-                      className="owlet-btn-action owlet-btn-delete"
-                      onClick={e => { e.stopPropagation(); handleDelete(item); }}
-                    >
-                      🗑️ Delete
+                    <button className="owlet-btn-action owlet-btn-delete"
+                      onClick={e => { e.stopPropagation(); handleDelete(item); }}>
+                      🗑️
                     </button>
                   </div>
                 </div>
@@ -351,14 +466,14 @@ export default function MediaLibrary({
           )}
         </div>
 
-        {/* Detail / Edit panel */}
+        {/* Detail / edit panel */}
         {selected && !pickerMode && (
           <div className="owlet-media-detail">
             <div className="owlet-media-detail-preview">
-              {getFileType(selected.mimetype) === 'image' ? (
-                <img src={getFileUrl(selected.filename)} alt={selected.alt || selected.originalName} />
+              {isImageItem(selected) ? (
+                <img src={getEffectiveUrl(selected)} alt={selected.alt || selected.originalName} />
               ) : (
-                <div className="owlet-media-detail-icon">{getFileIcon(selected.mimetype)}</div>
+                <div className="owlet-media-detail-icon">{getFileIcon(selected)}</div>
               )}
             </div>
 
@@ -378,7 +493,6 @@ export default function MediaLibrary({
                     <input
                       value={editingItem.alt || ''}
                       onChange={e => setEditingItem({ ...editingItem, alt: e.target.value })}
-                      placeholder="Describes the file..."
                     />
                   </div>
                   <div className="owlet-field">
@@ -386,10 +500,18 @@ export default function MediaLibrary({
                     <textarea
                       value={editingItem.description || ''}
                       onChange={e => setEditingItem({ ...editingItem, description: e.target.value })}
-                      placeholder="Optional description..."
                       rows={3}
                     />
                   </div>
+                  {isExternal(editingItem) && (
+                    <div className="owlet-field">
+                      <label>URL</label>
+                      <input
+                        value={editingItem.url || ''}
+                        onChange={e => setEditingItem({ ...editingItem, url: e.target.value })}
+                      />
+                    </div>
+                  )}
                   <div className="owlet-field">
                     <label>Tags</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.4rem' }}>
@@ -421,8 +543,14 @@ export default function MediaLibrary({
                 <>
                   <h3>{selected.title || selected.originalName}</h3>
                   <p className="owlet-media-meta">
-                    {formatSize(selected.size)} · {new Date(selected.createdAt).toLocaleDateString()}
+                    {isExternal(selected) ? '🔗 External URL' : formatSize(selected.size)}
+                    {' · '}{new Date(selected.createdAt).toLocaleDateString()}
                   </p>
+                  {selected.url && (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--ink-light)', wordBreak: 'break-all', marginTop: '0.3rem' }}>
+                      {selected.url}
+                    </p>
+                  )}
                   {selected.alt && (
                     <p style={{ fontSize: '0.8rem', color: 'var(--ink-light)', marginTop: '0.4rem' }}>
                       Alt: {selected.alt}
@@ -440,7 +568,7 @@ export default function MediaLibrary({
                       ))}
                     </div>
                   )}
-                  {selected.isIndexed && (
+                  {selected.isIndexed && !isExternal(selected) && (
                     <p style={{ fontSize: '0.75rem', color: 'var(--teal)', marginTop: '0.5rem' }}>
                       🔍 Content indexed ({selected.ocrText?.length || 0} chars)
                     </p>
@@ -453,13 +581,15 @@ export default function MediaLibrary({
                     <button className="owlet-btn-action owlet-btn-edit" onClick={() => setEditingItem({ ...selected })}>
                       ✏️ Edit
                     </button>
-                    <button
-                      className="owlet-btn-action owlet-btn-edit"
-                      onClick={() => handleReindex(selected)}
-                      disabled={reindexing === selected.id}
-                    >
-                      {reindexing === selected.id ? '⏳ Indexing...' : '🔍 Reindex'}
-                    </button>
+                    {!isExternal(selected) && (
+                      <button
+                        className="owlet-btn-action owlet-btn-edit"
+                        onClick={() => handleReindex(selected)}
+                        disabled={reindexing === selected.id}
+                      >
+                        {reindexing === selected.id ? '⏳ Indexing...' : '🔍 Reindex'}
+                      </button>
+                    )}
                     <button className="owlet-btn-action owlet-btn-delete" onClick={() => handleDelete(selected)}>
                       🗑️ Delete
                     </button>
