@@ -39,10 +39,22 @@ export default function MediaPicker({
 
   return (
     <div className="owlet-modal-overlay" onClick={onClose}>
-      <div className="owlet-modal" onClick={e => e.stopPropagation()}>
+      <div
+        className="owlet-modal"
+        onClick={e => e.stopPropagation()}
+        onClickCapture={e => {
+          const target = e.target as HTMLElement;
+          const button = target.closest('button');
+          if (button && button.getAttribute('type') !== 'submit') {
+            e.preventDefault();
+          }
+        }}
+      >
         <div className="owlet-modal-header">
-          <h2>📁 Media Library</h2>
-          <button className="owlet-modal-close" onClick={onClose}>✕</button>
+          <h2>Media Library</h2>
+          <button type="button" className="owlet-modal-close" onClick={onClose}>
+            x
+          </button>
         </div>
 
         <div className="owlet-modal-body">
@@ -57,17 +69,19 @@ export default function MediaPicker({
         <div className="owlet-modal-footer">
           {selected && (
             <p className="owlet-modal-selected">
-              ✓ Selected: <strong>{selected.item.originalName}</strong>
+              Selected: <strong>{selected.item.originalName}</strong>
             </p>
           )}
           <div className="owlet-form-actions">
             <button
+              type="button"
               className="owlet-btn owlet-btn-ghost"
               onClick={onClose}
             >
               Cancel
             </button>
             <button
+              type="button"
               className="owlet-btn owlet-btn-primary"
               style={{ width: 'auto' }}
               onClick={handleConfirm}
