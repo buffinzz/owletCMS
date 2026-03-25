@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from "../../api";
+import api from '../../api';
+
+const HoldButton = lazy(() => import('../../plugins/native-catalog/HoldButton'));
 
 interface CatalogItem {
   id: number;
@@ -35,13 +37,14 @@ export default function CollectionDetail() {
   const [selected, setSelected] = useState<CatalogItem | null>(null);
 
   useEffect(() => {
+    if (!slug) return;
     api.get(`/collections/${slug}`)
       .then(async res => {
         if (!res.data) return setNotFound(true);
         const collection = res.data;
 
+        // Fetch memberships then item data
         try {
-          // Use public memberships endpoint — no auth needed
           const memberRes = await api.get(`/collections/${slug}/memberships`);
           const memberships = memberRes.data || [];
           const catalogIds = memberships
@@ -51,7 +54,7 @@ export default function CollectionDetail() {
           if (catalogIds.length > 0) {
             const items = await Promise.all(
               catalogIds.map((id: number) =>
-                api.get(`/catalog/${id}`).then(r => r.data).catch(() => null)
+                api.get(`/catalog/item/${id}`).then(r => r.data).catch(() => null)
               )
             );
             collection.items = items.filter(Boolean);
@@ -100,7 +103,7 @@ export default function CollectionDetail() {
           </div>
         )}
         <div className="owlet-collection-hero-inner">
-          <Link to="/" className="owlet-collection-back">← Back</Link>
+          <Link to="/collections" className="owlet-collection-back">← Collections</Link>
           <h1>{collection.name}</h1>
           {collection.description && <p>{collection.description}</p>}
           <p className="owlet-collection-count">
@@ -150,10 +153,7 @@ export default function CollectionDetail() {
               <div className="owlet-book-detail">
                 <div className="owlet-book-detail-cover">
                   {selected.coverUrl && (
-                    <img
-                      src={selected.coverUrl}
-                      alt={selected.coverAlt || selected.title}
-                    />
+                    <img src={selected.coverUrl} alt={selected.coverAlt || selected.title} />
                   )}
                 </div>
                 <div className="owlet-book-detail-info">
@@ -166,24 +166,44 @@ export default function CollectionDetail() {
                   )}
                   {selected.subjects && selected.subjects.length > 0 && (
                     <div className="owlet-book-subjects">
-                      {selected.subjects.slice(0, 5).map(s => (
-                        <span key={s} className="owlet-book-subject">{s}</span>
+                      {selected.subjects.slice(0, 5).map((s, i) => (
+                        <span key={`${s}-${i}`} className="owlet-book-subject">{s}</span>
                       ))}
                     </div>
                   )}
                   {selected.summary && (
                     <p className="owlet-book-detail-summary">{selected.summary}</p>
                   )}
-                  {selected.externalUrl && (
-                    <a
-                      href={selected.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="owlet-btn owlet-btn-primary"
-                      style={{ width: 'auto', display: 'inline-block', marginTop: '1rem', textDecoration: 'none', textAlign: 'center' }}
+
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem', alignItems: 'center' }}>
+                    {/* Link to full item detail page */}
+                    <Link
+                      to={`/item/${selected.id}`}
+                      className="owlet-btn owlet-btn-ghost"
+                      style={{ width: 'auto', display: 'inline-block', textDecoration: 'none', textAlign: 'center', fontSize: '0.85rem' }}
                     >
-                      View in Catalog →
-                    </a>
+                      View Details →
+                    </Link>
+
+                    {/* External catalog link */}
+                    {selected.externalUrl && (
+                      <a
+                        href={selected.externalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="owlet-btn owlet-btn-primary"
+                        style={{ width: 'auto', display: 'inline-block', textDecoration: 'none', textAlign: 'center', fontSize: '0.85rem' }}
+                      >
+                        View in Catalog →
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Hold button — only if native catalog plugin is enabled */}
+                  {selected.source === 'native' && (
+                    <Suspense fallback={null}>
+                      <HoldButton itemId={selected.id} size="small" />
+                    </Suspense>
                   )}
                 </div>
                 <button

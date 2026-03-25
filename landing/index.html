@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owlet CMS • Knowledge that connects</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Space+Grotesk:wght@400;500;600&display=swap');
+    
+    body {
+      background: #0a1428;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    .hero-bg {
+      background-image: url('./owlet-hero.png'); /* fallback if needed */
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.75) contrast(1.15) saturate(0.95); /* toned-down warmth */
+    }
+    
+    .glow-cyan { text-shadow: 0 0 20px #67e8f9; }
+    .glow-pink { text-shadow: 0 0 20px #f472b6; }
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #a5f3fc;
+      border-radius: 50%;
+      animation: float-particle 8s linear infinite;
+      box-shadow: 0 0 12px #67e8f9;
+    }
+    
+    @keyframes float-particle {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-800px) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body class="text-white overflow-x-hidden">
+
+  <!-- Navbar -->
+  <nav class="fixed top-0 w-full z-50 bg-[#0a1428]/80 backdrop-blur-md border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="https://github.com/buffinzz/owletCMS/raw/main/images/logo-sm.png" 
+             alt="Owlet CMS Logo" 
+             class="w-9 h-9 object-contain">
+        <span class="text-3xl font-medium tracking-tighter">owlet<span class="text-cyan-300">.</span>cms</span>
+      </div>
+      <div class="hidden md:flex gap-8 text-sm font-medium">
+        <a href="#features" class="hover:text-cyan-300 transition">Features</a>
+        <a href="#for" class="hover:text-cyan-300 transition">For Libraries & Museums</a>
+        <a href="#roadmap" class="hover:text-cyan-300 transition">Roadmap</a>
+        <a href="https://github.com/buffinzz/owletCMS" target="_blank" class="hover:text-cyan-300 transition">GitHub</a>
+      </div>
+      <a href="https://github.com/buffinzz/owletCMS" target="_blank"
+         class="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 rounded-2xl font-semibold flex items-center gap-2 transition">
+        <i class="fab fa-github"></i> Star on GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-bg min-h-screen flex items-center relative overflow-hidden">
+    <!-- Floating particles -->
+    <div id="particles" class="absolute inset-0 pointer-events-none"></div>
+    
+    <div class="max-w-7xl mx-auto px-6 pt-24 md:pt-32 relative z-10">
+      <div class="max-w-2xl">
+        <h1 class="text-6xl md:text-7xl font-bold leading-none tracking-tighter mb-4">
+          Knowledge that<br><span class="glow-cyan">connects</span>
+        </h1>
+        <p class="text-xl text-white/80 mb-10">
+          An open-source CMS designed for libraries, archives, museums &amp; community knowledge spaces.
+        </p>
+        
+        <div class="flex flex-wrap gap-4">
+          <a href="#get-started" 
+             class="px-8 py-4 bg-gradient-to-r from-cyan-400 to-teal-400 text-white rounded-3xl font-semibold text-lg flex items-center gap-2 hover:scale-105 transition shadow-2xl shadow-cyan-500/50">
+            <i class="fas fa-rocket"></i> Try the demo
+          </a>
+          <a href="https://github.com/buffinzz/owletCMS" target="_blank"
+             class="px-8 py-4 border border-white/30 hover:border-white/60 rounded-3xl font-semibold text-lg flex items-center gap-2 transition">
+            View on GitHub
+          </a>
+        </div>
+        
+        <div class="mt-16 flex items-center gap-8 text-sm">
+          <div class="flex -space-x-4">
+            <div class="w-8 h-8 rounded-2xl bg-cyan-300 flex items-center justify-center text-[#0a1428]">📖</div>
+            <div class="w-8 h-8 rounded-2xl bg-teal-300 flex items-center justify-center text-[#0a1428]">🧭</div>
+            <div class="w-8 h-8 rounded-2xl bg-sky-300 flex items-center justify-center text-[#0a1428]">🧩</div>
+          </div>
+          <p class="text-white/60">Built for the places that hold our stories</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Floating particles
+    function createParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 60; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.top = Math.random() * 100 + 'vh';
+        p.style.animationDuration = (Math.random() * 12 + 8) + 's';
+        p.style.opacity = Math.random() * 0.7 + 0.3;
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 20000);
+      }
+    }
+    createParticles();
+    setInterval(createParticles, 7000);
+  </script>
+</body>
+</html>

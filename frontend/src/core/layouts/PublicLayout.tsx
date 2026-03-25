@@ -20,10 +20,6 @@ export default function PublicLayout() {
 
   const logoSrc = settings.library_logo_url;
   const siteName = settings.library_name || 'Owlet Library';
-  // In PublicLayout.tsx temporarily:
-console.log('pluginsLoading:', pluginsLoading);
-console.log('plugins:', plugins);
-console.log('hasPlugin catalog:', hasPlugin('owlet-plugin-catalog'));
 
   return (
     <div>

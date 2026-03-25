@@ -63,7 +63,7 @@ export default function HoldsTab() {
     const result = await Promise.all(
       rawHolds.map(async hold => {
         const [item, patron] = await Promise.all([
-          api.get(`/catalog/${hold.itemId}`).then(r => r.data).catch(() => null),
+          api.get(`/catalog/item/${hold.itemId}`).then(r => r.data).catch(() => null),
           api.get(`/users/${hold.patronId}`, authHeader).then(r => r.data).catch(() => null),
         ]);
         return { ...hold, item, patron };

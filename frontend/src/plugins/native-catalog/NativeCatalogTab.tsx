@@ -30,6 +30,11 @@ interface NativeCopy {
   notes?: string;
 }
 
+interface CopyCounts {
+  total: number;
+  available: number;
+}
+
 const FORMATS = [
   { value: 'book', label: '📖 Book' },
   { value: 'dvd', label: '🎬 DVD/Blu-ray' },
@@ -77,6 +82,7 @@ export default function NativeCatalogTab() {
   // Copies
   const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null);
   const [copies, setCopies] = useState<NativeCopy[]>([]);
+  const [copyCounts, setCopyCounts] = useState<Record<number, CopyCounts>>({});
   const [copyForm, setCopyForm] = useState(emptyCopy);
   const [editingCopyId, setEditingCopyId] = useState<number | null>(null);
 
@@ -88,6 +94,10 @@ export default function NativeCatalogTab() {
 
   useEffect(() => { fetchItems(); }, []);
   useEffect(() => { fetchItems(); }, [search]);
+  useEffect(() => {
+    if (user?.token) fetchCopyCounts();
+    else setCopyCounts({});
+  }, [user?.token, items.length]);
 
   const fetchItems = () => {
     setLoading(true);
@@ -102,6 +112,21 @@ export default function NativeCatalogTab() {
   const fetchCopies = (itemId: number) => {
     api.get(`/catalog/copies/item/${itemId}`, authHeader)
       .then(res => setCopies(res.data));
+  };
+
+  const fetchCopyCounts = () => {
+    api.get('/catalog/copies', authHeader)
+      .then(res => {
+        const counts = (res.data as NativeCopy[]).reduce<Record<number, CopyCounts>>((acc, copy) => {
+          const current = acc[copy.itemId] || { total: 0, available: 0 };
+          current.total += 1;
+          if (copy.status === 'available') current.available += 1;
+          acc[copy.itemId] = current;
+          return acc;
+        }, {});
+        setCopyCounts(counts);
+      })
+      .catch(() => setCopyCounts({}));
   };
 
   const notify = (msg: string, isError = false) => {
@@ -173,7 +198,7 @@ export default function NativeCatalogTab() {
     try {
       const data = { ...form, source: 'native' };
       if (editingId) {
-        await api.patch(`/catalog/${editingId}`, data, authHeader);
+        await api.patch(`/catalog/item/${editingId}`, data, authHeader);
         notify('Item saved!');
       } else {
         await api.post('/catalog', data, authHeader);
@@ -189,7 +214,7 @@ export default function NativeCatalogTab() {
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this item and all its copies?')) return;
     try {
-      await api.delete(`/catalog/${id}`, authHeader);
+      await api.delete(`/catalog/item/${id}`, authHeader);
       notify('Item deleted.');
       fetchItems();
     } catch {
@@ -221,6 +246,7 @@ export default function NativeCatalogTab() {
       setCopyForm(emptyCopy);
       setEditingCopyId(null);
       fetchCopies(selectedItem.id);
+      fetchCopyCounts();
     } catch {
       notify('Failed to save copy.', true);
     }
@@ -232,6 +258,7 @@ export default function NativeCatalogTab() {
       await api.delete(`/catalog/copies/${copyId}`, authHeader);
       notify('Copy deleted.');
       if (selectedItem) fetchCopies(selectedItem.id);
+      fetchCopyCounts();
     } catch {
       notify('Failed to delete copy.', true);
     }
@@ -306,12 +333,18 @@ export default function NativeCatalogTab() {
                   <p>
                     {item.author && <span>{item.author}</span>}
                     {item.isbn && <span> · ISBN: {item.isbn}</span>}
+                    {copyCounts[item.id]?.total > 0 && (
+                      <span>
+                        {' '}· {copyCounts[item.id].total} cop{copyCounts[item.id].total !== 1 ? 'ies' : 'y'}
+                        {copyCounts[item.id].available > 0 && ` (${copyCounts[item.id].available} available)`}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div className="owlet-admin-item-actions">
                   <button className="owlet-btn-action owlet-btn-edit"
                     onClick={() => handleViewCopies(item)}>
-                    📋 Copies
+                    📋 Copies{copyCounts[item.id]?.total ? ` (${copyCounts[item.id].total})` : ''}
                   </button>
                   <button className="owlet-btn-action owlet-btn-edit"
                     onClick={() => handleEdit(item)}>

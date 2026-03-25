@@ -140,7 +140,7 @@ export default function CirculationTab() {
       // Enrich with item data
       const enriched = await Promise.all(
         res.data.map(async (record: CirculationRecord) => {
-          const item = await api.get(`/catalog/${record.itemId}`).then(r => r.data).catch(() => null);
+          const item = await api.get(`/catalog/item/${record.itemId}`).then(r => r.data).catch(() => null);
           const copy = await api.get(`/catalog/copies/item/${record.itemId}`, authHeader)
             .then(r => r.data.find((c: Copy) => c.id === record.copyId)).catch(() => null);
           return { ...record, item, copy };
@@ -158,7 +158,7 @@ export default function CirculationTab() {
     try {
       const res = await api.get(`/catalog/copies/barcode/${encodeURIComponent(barcode)}`, authHeader);
       if (res.data) {
-        const item = await api.get(`/catalog/${res.data.itemId}`).then(r => r.data).catch(() => null);
+        const item = await api.get(`/catalog/item/${res.data.itemId}`).then(r => r.data).catch(() => null);
         setSelectedCopy(res.data);
         setSelectedCopyItem(item);
         setCopyBarcode('');
@@ -233,7 +233,7 @@ export default function CirculationTab() {
       }
       const copy = copyRes.data;
       const record = await api.post(`/circulation/return/${copy.id}`, {}, authHeader);
-      const item = await api.get(`/catalog/${copy.itemId}`).then(r => r.data).catch(() => null);
+      const item = await api.get(`/catalog/item/${copy.itemId}`).then(r => r.data).catch(() => null);
       setReturnResult({ copy, item, record: record.data });
       setReturnBarcode('');
       notify(`✅ "${item?.title || 'Item'}" returned successfully!`);

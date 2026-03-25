@@ -60,7 +60,7 @@ export class CatalogController {
   }
 
   // ── Parameterised routes LAST ──
-  @Get(':id')
+  @Get('item/:id')
   findOne(@Param('id') id: string) {
     return this.catalogService.findOne(+id);
   }
@@ -72,14 +72,14 @@ export class CatalogController {
     return this.catalogService.create(data);
   }
 
-  @Patch(':id')
+  @Patch('item/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'staff')
   update(@Param('id') id: string, @Body() data: Partial<CollectionItem>) {
     return this.catalogService.update(+id, data);
   }
 
-  @Delete(':id')
+  @Delete('item/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   remove(@Param('id') id: string) {

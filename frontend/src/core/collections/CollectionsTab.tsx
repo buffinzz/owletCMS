@@ -132,7 +132,7 @@ export default function CollectionsTab() {
     try {
       switch (type) {
         case 'catalog_item': {
-          const res = await api.get(`/catalog/${id}`);
+          const res = await api.get(`/catalog/item/${id}`);
           return { id, label: res.data.title, sublabel: res.data.author, entityType: type };
         }
         case 'page': {

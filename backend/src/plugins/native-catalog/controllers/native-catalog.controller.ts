@@ -35,6 +35,21 @@ export class NativeCatalogController {
     return this.service.findCopyByBarcode(barcode);
   }
 
+  @Get(':id/availability')
+  async getAvailability(@Param('id') id: string) {
+    const copies = await this.service.findCopiesByItem(+id);
+    const available = copies.filter(c => c.status === 'available').length;
+    const checkedOut = copies.filter(c => c.status === 'checked_out').length;
+    const onHold = copies.filter(c => c.status === 'on_hold').length;
+    return {
+      total: copies.length,
+      available,
+      checkedOut,
+      onHold,
+      hasNativeCopies: copies.length > 0,
+    };
+  }
+
   @Post('copies')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'editor', 'staff')

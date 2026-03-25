@@ -34,6 +34,11 @@ interface NativeCopy {
   notes?: string;
 }
 
+interface CopyCounts {
+  total: number;
+  available: number;
+}
+
 interface SyncLog {
   id: number;
   provider: string;
@@ -117,6 +122,7 @@ export default function CatalogTab() {
   // Copies
   const [copiesItem, setCopiesItem] = useState<CatalogItem | null>(null);
   const [copies, setCopies] = useState<NativeCopy[]>([]);
+  const [copyCounts, setCopyCounts] = useState<Record<number, CopyCounts>>({});
   const [copyForm, setCopyForm] = useState(emptyCopy);
   const [editingCopyId, setEditingCopyId] = useState<number | null>(null);
 
@@ -148,6 +154,26 @@ export default function CatalogTab() {
       .then(res => setCopies(res.data))
       .catch(() => setCopies([]));
   };
+
+  const fetchCopyCounts = () => {
+    api.get('/catalog/copies', authHeader)
+      .then(res => {
+        const counts = (res.data as NativeCopy[]).reduce<Record<number, CopyCounts>>((acc, copy) => {
+          const current = acc[copy.itemId] || { total: 0, available: 0 };
+          current.total += 1;
+          if (copy.status === 'available') current.available += 1;
+          acc[copy.itemId] = current;
+          return acc;
+        }, {});
+        setCopyCounts(counts);
+      })
+      .catch(() => setCopyCounts({}));
+  };
+
+  useEffect(() => {
+    if (user?.token) fetchCopyCounts();
+    else setCopyCounts({});
+  }, [user?.token, items.length]);
 
   const notify = (msg: string, isError = false) => {
     if (isError) { setError(msg); setSuccess(''); }
@@ -276,7 +302,7 @@ export default function CatalogTab() {
     e.preventDefault();
     try {
       if (editingItem) {
-        await api.patch(`/catalog/${editingItem.id}`, form, authHeader);
+        await api.patch(`/catalog/item/${editingItem.id}`, form, authHeader);
         notify('Item saved!');
       } else {
         const newItem = await api.post('/catalog', form, authHeader);
@@ -295,7 +321,7 @@ export default function CatalogTab() {
   const handleDeleteItem = async (id: number) => {
     if (!confirm('Delete this item?')) return;
     try {
-      await api.delete(`/catalog/${id}`, authHeader);
+      await api.delete(`/catalog/item/${id}`, authHeader);
       notify('Item deleted.');
       fetchItems();
     } catch { notify('Failed to delete.', true); }
@@ -335,6 +361,7 @@ export default function CatalogTab() {
       setCopyForm(emptyCopy);
       setEditingCopyId(null);
       fetchCopies(copiesItem.id);
+      fetchCopyCounts();
     } catch { notify('Failed to save copy.', true); }
   };
 
@@ -344,6 +371,7 @@ export default function CatalogTab() {
       await api.delete(`/catalog/copies/${copyId}`, authHeader);
       notify('Copy deleted.');
       if (copiesItem) fetchCopies(copiesItem.id);
+      fetchCopyCounts();
     } catch { notify('Failed to delete copy.', true); }
   };
 
@@ -471,13 +499,19 @@ export default function CatalogTab() {
                   <p>
                     {item.author && <span>{item.author}</span>}
                     {item.isbn && <span> · ISBN: {item.isbn}</span>}
+                    {item.source === 'native' && copyCounts[item.id]?.total > 0 && (
+                      <span>
+                        {' '}· {copyCounts[item.id].total} cop{copyCounts[item.id].total !== 1 ? 'ies' : 'y'}
+                        {copyCounts[item.id].available > 0 && ` (${copyCounts[item.id].available} available)`}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div className="owlet-admin-item-actions">
                   {item.source === 'native' && (
                     <button className="owlet-btn-action owlet-btn-edit"
                       onClick={() => handleViewCopies(item)}>
-                      📋 Copies
+                      📋 Copies{copyCounts[item.id]?.total ? ` (${copyCounts[item.id].total})` : ''}
                     </button>
                   )}
                   <button className="owlet-btn-action owlet-btn-edit"

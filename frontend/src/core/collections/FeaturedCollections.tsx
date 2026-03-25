@@ -29,7 +29,7 @@ export default function FeaturedCollections() {
   if (collections.length === 0) return null;
 
   return (
-    <section style={{ marginTop: '3rem' }}>
+    <section>
       <div className="owlet-section-heading">
         <h2>🗂️ Featured Collections</h2>
       </div>

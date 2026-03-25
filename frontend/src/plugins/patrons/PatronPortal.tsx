@@ -89,7 +89,7 @@ export default function PatronPortal() {
 
       const enrichedCheckouts = await Promise.all(
         checkoutRes.data.map(async (record: CirculationRecord) => {
-          const item = await api.get(`/catalog/${record.itemId}`)
+          const item = await api.get(`/catalog/item/${record.itemId}`)
             .then(r => r.data).catch(() => null);
           return { ...record, item };
         })
@@ -98,7 +98,7 @@ export default function PatronPortal() {
 
       const enrichedHolds = await Promise.all(
         holdsRes.data.map(async (hold: Hold) => {
-          const item = await api.get(`/catalog/${hold.itemId}`)
+          const item = await api.get(`/catalog/item/${hold.itemId}`)
             .then(r => r.data).catch(() => null);
           return { ...hold, item };
         })
@@ -116,7 +116,7 @@ export default function PatronPortal() {
       const res = await api.get('/circulation/my-history', authHeader);
       const enriched = await Promise.all(
         res.data.map(async (record: CirculationRecord) => {
-          const item = await api.get(`/catalog/${record.itemId}`)
+          const item = await api.get(`/catalog/item/${record.itemId}`)
             .then(r => r.data).catch(() => null);
           return { ...record, item };
         })

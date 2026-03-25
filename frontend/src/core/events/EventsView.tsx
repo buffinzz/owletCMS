@@ -45,7 +45,7 @@ export default function EventsView() {
   }
 
   return (
-    <section style={{ marginTop: '3rem' }}>
+    <section>
       <div className="owlet-section-heading">
         <h2>📅 Upcoming Events</h2>
       </div>

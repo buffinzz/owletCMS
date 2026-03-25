@@ -1,27 +1,34 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useAuth } from './core/auth/AuthContext';
-import { useEffect, useState } from 'react';
+import { useIsPluginEnabled } from './plugins/usePlugins';
 import api from './api';
+
+// Core layouts
 import PublicLayout from './core/layouts/PublicLayout';
 import AdminLayout from './core/layouts/AdminLayout';
+import StaffLayout from './core/layouts/StaffLayout';
+
+// Core pages
 import LoginPage from './core/auth/LoginPage';
-import { getAuthLandingPath } from './core/auth/getAuthLandingPath';
-import { canAccessAdmin } from './core/auth/roleUtils';
 import StaffDirectory from './core/staff/StaffDirectory';
 import StaffProfile from './core/staff/StaffProfile';
-import StaffLayout from './core/layouts/StaffLayout';
 import SetupWizard from './core/setup/SetupWizard';
-import CollectionDetail from "./core/collections/CollectionDetail";
+import CollectionDetail from './core/collections/CollectionDetail';
 import CollectionsPage from './core/collections/CollectionsPage';
 import EventsPage from './core/events/EventsPage';
-import RegisterPage from './plugins/patrons/RegisterPage';
-import PatronPortal from './plugins/patrons/PatronPortal';
+
+// Plugin pages — lazy loaded
+const RegisterPage = lazy(() => import('./plugins/patrons/RegisterPage'));
+const PatronPortal = lazy(() => import('./plugins/patrons/PatronPortal'));
+const ItemDetailPage = lazy(() => import('./plugins/catalog/ItemDetailPage'));
 
 function App() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, canEdit, user } = useAuth();
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null);
-  const authenticatedLandingPath = getAuthLandingPath(user?.role);
-  const hasAdminAccess = canAccessAdmin(user?.role);
+
+  const patronsEnabled = useIsPluginEnabled('owlet-plugin-patrons');
+  const catalogEnabled = useIsPluginEnabled('owlet-plugin-catalog');
 
   useEffect(() => {
     api.get('/settings/setup-status').then(res => {
@@ -38,7 +45,7 @@ function App() {
     );
   }
 
-  // Setup not complete — show wizard for everything
+  // Setup not complete — show wizard
   if (!setupComplete) {
     return (
       <Routes>
@@ -50,24 +57,52 @@ function App() {
 
   return (
     <Routes>
+      {/* ── Core public routes ── */}
       <Route path="/" element={<PublicLayout />} />
       <Route path="/staff" element={<StaffLayout><StaffDirectory /></StaffLayout>} />
       <Route path="/staff/:username" element={<StaffLayout><StaffProfile /></StaffLayout>} />
-      <Route path="/admin/login" element={
-      !isAuthenticated ? <LoginPage /> :
-      <Navigate to={authenticatedLandingPath} replace />
-    } />
-    <Route path="/admin" element={
-      !isAuthenticated ? <Navigate to="/admin/login" replace /> :
-      hasAdminAccess ? <AdminLayout /> :
-      <Navigate to={authenticatedLandingPath} replace />
-    } />
-      <Route path="/setup" element={<Navigate to="/" replace />} />
-      <Route path="/collections/:slug" element={<StaffLayout><CollectionDetail /></StaffLayout>} />
       <Route path="/collections" element={<StaffLayout><CollectionsPage /></StaffLayout>} />
+      <Route path="/collections/:slug" element={<StaffLayout><CollectionDetail /></StaffLayout>} />
       <Route path="/events" element={<StaffLayout><EventsPage /></StaffLayout>} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/my-account" element={<PatronPortal />} />
+
+      {/* ── Auth routes ── */}
+      <Route path="/admin/login" element={
+        !isAuthenticated ? <LoginPage /> :
+        user?.role === 'patron' ? <Navigate to="/my-account" /> :
+        <Navigate to="/admin" />
+      } />
+      <Route path="/admin" element={
+        !isAuthenticated ? <Navigate to="/admin/login" /> :
+        user?.role === 'patron' ? <Navigate to="/my-account" /> :
+        canEdit ? <AdminLayout /> :
+        <Navigate to="/admin/login" />
+      } />
+      <Route path="/setup" element={<Navigate to="/" />} />
+
+      {/* ── Plugin routes — only registered if plugin is enabled ── */}
+      {patronsEnabled && (
+        <Route path="/register" element={
+          <Suspense fallback={<div className="owlet-loading"><span /><span /><span /></div>}>
+            <RegisterPage />
+          </Suspense>
+        } />
+      )}
+      {patronsEnabled && (
+        <Route path="/my-account" element={
+          <Suspense fallback={<div className="owlet-loading"><span /><span /><span /></div>}>
+            <PatronPortal />
+          </Suspense>
+        } />
+      )}
+      {catalogEnabled && (
+        <Route path="/item/:id" element={
+          <StaffLayout>
+            <Suspense fallback={<div className="owlet-loading"><span /><span /><span /></div>}>
+              <ItemDetailPage />
+            </Suspense>
+          </StaffLayout>
+        } />
+      )}
     </Routes>
   );
 }

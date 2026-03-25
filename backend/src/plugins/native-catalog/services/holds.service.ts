@@ -14,22 +14,39 @@ export class HoldsService {
   ) {}
 
   async placeHold(itemId: number, patronId: number): Promise<Hold> {
-    // Check if patron already has a hold on this item
-    const existing = await this.holdRepository.findOne({
-      where: {
-        itemId,
-        patronId,
-        status: HoldStatus.PENDING,
-      },
+    const existingPending = await this.holdRepository.findOne({
+      where: { itemId, patronId, status: HoldStatus.PENDING },
     });
-    if (existing) throw new BadRequestException('You already have a hold on this item');
+    if (existingPending) throw new BadRequestException('You already have a hold on this item');
 
-    // Check if there's an available copy — no need to hold
+    const existingReady = await this.holdRepository.findOne({
+      where: { itemId, patronId, status: HoldStatus.READY },
+    });
+    if (existingReady) throw new BadRequestException('You already have a hold on this item');
+
     const available = await this.copyRepository.findOneBy({
       itemId,
       status: CopyStatus.AVAILABLE,
     });
-    if (available) throw new BadRequestException('A copy is currently available — no hold needed');
+
+    if (available) {
+      const now = new Date();
+      const expiresAt = new Date(now);
+      expiresAt.setDate(expiresAt.getDate() + parseInt(process.env.HOLD_EXPIRY_DAYS || '7'));
+
+      await this.copyRepository.update(available.id, { status: CopyStatus.ON_HOLD });
+
+      const readyHold = this.holdRepository.create({
+        itemId,
+        patronId,
+        status: HoldStatus.READY,
+        readyAt: now,
+        notifiedAt: now,
+        expiresAt,
+        copyId: available.id,
+      });
+      return this.holdRepository.save(readyHold);
+    }
 
     const hold = this.holdRepository.create({ itemId, patronId });
     return this.holdRepository.save(hold);
